@@ -1,7 +1,10 @@
+// ignore_for_file: file_names, unused_field, prefer_final_fields
+
 import 'package:flutter/material.dart';
 import 'package:flutter_smartclass/global/color.dart';
 import 'package:flutter_smartclass/page/accessibility/mainAccess.dart';
 import 'package:flutter_smartclass/page/home/mainHome.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'package:ionicons/ionicons.dart';
 
 class NavigationPage extends StatefulWidget {
@@ -24,14 +27,17 @@ class _NavigationPageState extends State<NavigationPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      floatingActionButton: const floatingButton(),
       body: screens[currentIndex],
       bottomNavigationBar: Theme(
         data: Theme.of(context).copyWith(
-            canvasColor: primary,),
+          canvasColor: primary,
+        ),
         child: BottomNavigationBar(
+            selectedLabelStyle: GoogleFonts.inter(),
             currentIndex: currentIndex,
-            selectedItemColor: const Color(0xff6200ee),
-            unselectedItemColor: secondary,
+            selectedItemColor: secondary,
+            unselectedItemColor: secondary60,
             type: BottomNavigationBarType.shifting,
             onTap: (index) => setState(() {
                   currentIndex = index;
@@ -39,6 +45,29 @@ class _NavigationPageState extends State<NavigationPage> {
             items: _navBarItems),
       ),
     );
+  }
+}
+
+class floatingButton extends StatelessWidget {
+  const floatingButton({
+    Key? key,
+  }) : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    return SizedBox(
+      width: 50,
+      height: 50,
+        child: FloatingActionButton(
+          backgroundColor: highlight,
+          foregroundColor: secondary,
+          mini: true,
+          onPressed: () {
+            // Respond to button press
+          },
+          child: const Icon(Icons.add,size: 30,),
+        ),
+      );
   }
 }
 

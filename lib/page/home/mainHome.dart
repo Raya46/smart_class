@@ -7,7 +7,7 @@ import 'package:flutter_smartclass/global/color.dart';
 import 'package:flutter_smartclass/global/textstyle.dart';
 import 'package:flutter_smartclass/global/var/bool.dart';
 import 'package:flutter_smartclass/widget/homepage/card.dart';
-import 'package:flutter_smartclass/widget/homepage/homeAppbar.dart';
+import 'package:flutter_smartclass/widget/widgetAppbar.dart';
 import 'package:flutter_switch/flutter_switch.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/intl.dart';
@@ -123,7 +123,7 @@ class _allCardState extends State<allCard> {
                             });
                           },
                           child: cardSwitch(width: widget.width)),
-                    ]),
+                      ]),
               ],
             ),
           )),

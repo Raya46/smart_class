@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_smartclass/global/color.dart';
+import 'package:flutter_smartclass/global/textstyle.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 AppBar homeAppbar() {
@@ -45,3 +46,32 @@ AppBar homeAppbar() {
     ],
   );
 }
+
+
+AppBar accesAppbar() {
+  return AppBar(
+    toolbarHeight: 80,
+    backgroundColor: Colors.transparent,
+    elevation: 0,
+    title: Text(
+        'Accesibility',
+        style: bold24Prim()
+      ),
+    
+  );
+}
+
+AppBar roomAppbar() {
+  return AppBar(
+    leading: BackButton(color: primary),
+    toolbarHeight: 80,
+    backgroundColor: Colors.transparent,
+    elevation: 0,
+    title: Text(
+        'Accesibility',
+        style: bold16Prim()
+      ),
+    
+  );
+}
+

@@ -1,9 +1,9 @@
-import 'package:flutter/cupertino.dart';
+// ignore_for_file: camel_case_types
+
 import 'package:flutter/material.dart';
 import 'package:flutter_smartclass/global/color.dart';
 import 'package:flutter_smartclass/global/textstyle.dart';
 import 'package:flutter_smartclass/global/var/bool.dart';
-import 'package:flutter_smartclass/page/home/mainHome.dart';
 import 'package:flutter_switch/flutter_switch.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/intl.dart';
@@ -152,8 +152,8 @@ class _cardLampState extends State<cardLamp> {
                       const SizedBox(
                         height: 10,
                       ),
-                      Text('Smart Lamp', style: lamp? bold20Highlight() : bold20Prim()),
-                      
+                      Text('Smart Lamp',
+                          style: lamp ? bold16Highlight() : bold16Prim()),
                       Text(
                         "4 Lamps",
                         style: GoogleFonts.inter(
@@ -233,14 +233,15 @@ class _cardAcState extends State<cardAc> {
                         radius: 23,
                         backgroundColor: ac ? Colors.white : primary,
                         child: Icon(
-                          Ionicons.snow ,
+                          Ionicons.snow,
                           color: ac ? highlight : Colors.white,
                         ),
                       ),
                       const SizedBox(
                         height: 10,
                       ),
-                      Text('Smart Ac', style: ac? bold20Highlight() : bold20Prim()),
+                      Text('Smart Ac',
+                          style: ac ? bold16Highlight() : bold16Prim()),
                       Text(
                         "4 Devices",
                         style: GoogleFonts.inter(
@@ -277,7 +278,6 @@ class _cardAcState extends State<cardAc> {
     );
   }
 }
-
 
 class cardCurtain extends StatefulWidget {
   const cardCurtain({
@@ -322,15 +322,15 @@ class _cardCurtainState extends State<cardCurtain> {
                         radius: 23,
                         backgroundColor: curtain ? Colors.white : primary,
                         child: Icon(
-                          Icons.curtains_closed_rounded ,
+                          Icons.curtains_closed_rounded,
                           color: curtain ? highlight : Colors.white,
                         ),
                       ),
                       const SizedBox(
                         height: 10,
                       ),
-                      Text('Smart Curtain', style: curtain? bold20Highlight() : bold20Prim()),
-                      
+                      Text('Smart Curtain',
+                          style: curtain ? bold16Highlight() : bold16Prim()),
                       Text(
                         "4 Devices",
                         style: GoogleFonts.inter(
@@ -418,8 +418,8 @@ class _cardSwitchState extends State<cardSwitch> {
                       const SizedBox(
                         height: 10,
                       ),
-                      Text('Smart Switch', style: switchs? bold20Highlight() : bold20Prim()),
-                      
+                      Text('Smart Switch',
+                          style: switchs ? bold16Highlight() : bold16Prim()),
                       Text(
                         "4 Devices",
                         style: GoogleFonts.inter(
@@ -506,8 +506,8 @@ class _cardBoardState extends State<cardBoard> {
                       const SizedBox(
                         height: 10,
                       ),
-                      Text('Smart Board', style: board? bold20Highlight() : bold20Prim()),
-                      
+                      Text('Smart Board',
+                          style: board ? bold16Highlight() : bold16Prim()),
                       Text(
                         "1 Devices",
                         style: GoogleFonts.inter(
@@ -594,8 +594,8 @@ class _cardAudioState extends State<cardAudio> {
                       const SizedBox(
                         height: 10,
                       ),
-                      Text('Smart Audio', style: audio? bold20Highlight() : bold20Prim()),
-                      
+                      Text('Smart Audio',
+                          style: audio ? bold16Highlight() : bold16Prim()),
                       Text(
                         "4 Devices",
                         style: GoogleFonts.inter(
