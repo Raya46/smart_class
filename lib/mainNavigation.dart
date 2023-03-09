@@ -2,6 +2,7 @@
 
 import 'package:flutter/material.dart';
 import 'package:flutter_smartclass/global/color.dart';
+import 'package:flutter_smartclass/page/AddDevicePage.dart';
 import 'package:flutter_smartclass/page/accessibility/mainAccess.dart';
 import 'package:flutter_smartclass/page/home/mainHome.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -63,7 +64,10 @@ class floatingButton extends StatelessWidget {
           foregroundColor: secondary,
           mini: true,
           onPressed: () {
-            // Respond to button press
+            Navigator.push(
+            context,
+            MaterialPageRoute(builder: (context) => AddDevicePage()),
+            );
           },
           child: const Icon(Icons.add,size: 30,),
         ),

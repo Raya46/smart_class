@@ -5,6 +5,7 @@ import 'package:flutter/src/widgets/container.dart';
 import 'package:flutter/src/widgets/framework.dart';
 import 'package:flutter_smartclass/global/color.dart';
 import 'package:flutter_smartclass/global/textstyle.dart';
+import 'package:flutter_smartclass/page/accessibility/room/mainRoom.dart';
 import 'package:flutter_smartclass/widget/widgetAppbar.dart';
 import 'package:ionicons/ionicons.dart';
 
@@ -26,7 +27,12 @@ class _AccessPageState extends State<AccessPage> {
           margin: const EdgeInsets.symmetric(horizontal: 12, vertical: 20),
           child: Column(
             children: [
-              InkWell(child: RoomWidget(width: width),onTap: (){},),
+              InkWell(child: RoomWidget(width: width),onTap: (){
+                Navigator.push(
+                context,
+                MaterialPageRoute(builder: (context) => RoomPage()),
+                );
+              },),
               InkWell(child: RoomWidget(width: width),onTap: (){},),
               InkWell(child: RoomWidget(width: width),onTap: (){},),
               InkWell(child: RoomWidget(width: width),onTap: (){},),
