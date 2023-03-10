@@ -27,18 +27,17 @@ class _AccessPageState extends State<AccessPage> {
           margin: const EdgeInsets.symmetric(horizontal: 12, vertical: 20),
           child: Column(
             children: [
-              InkWell(child: RoomWidget(width: width),onTap: (){
-                Navigator.push(
-                context,
-                MaterialPageRoute(builder: (context) => RoomPage()),
-                );
-              },),
-              InkWell(child: RoomWidget(width: width),onTap: (){},),
-              InkWell(child: RoomWidget(width: width),onTap: (){},),
-              InkWell(child: RoomWidget(width: width),onTap: (){},),
-              InkWell(child: RoomWidget(width: width),onTap: (){},),
-              InkWell(child: RoomWidget(width: width),onTap: (){},),
-              InkWell(child: RoomWidget(width: width),onTap: (){},),
+              RoomWidget(
+                  width: width,
+                  onTap: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(builder: (context) => RoomPage()),
+                    );
+                  },
+                  status: 'Connected',
+                  roomName: 'Room 1',
+                  totalDevice: '4')
             ],
           ),
         ),
@@ -48,9 +47,17 @@ class _AccessPageState extends State<AccessPage> {
 }
 
 class RoomWidget extends StatelessWidget {
+  final VoidCallback onTap;
+  final String status;
+  final String roomName;
+  final String totalDevice;
   const RoomWidget({
     Key? key,
     required this.width,
+    required this.onTap,
+    required this.status,
+    required this.roomName,
+    required this.totalDevice,
   }) : super(key: key);
 
   final double width;
@@ -59,53 +66,65 @@ class RoomWidget extends StatelessWidget {
   Widget build(BuildContext context) {
     return Container(
       margin: const EdgeInsets.only(bottom: 10),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: [
-          Row(
-            children: [
-              ClipRRect(
-                borderRadius: BorderRadius.circular(15),
-                child: SizedBox(
-                  height: width * 0.2,
-                  width: width * 0.2,
-                  child: Container(
-                      color: primary,
-                      child: const Icon(
-                        Ionicons.bulb,
-                        size: 50,
-                        color: Colors.white,
-                      )),
-                ),
-              ),
-              const SizedBox(
-                width: 15,
-              ),
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Text("Connected", style: med14prim50()),
-                  Text("Room 1", style: bold20Prim()),
-                  Container(
-                    width: 50,
-                    height: 25,
-                    decoration: BoxDecoration(
-                      borderRadius: BorderRadius.circular(7),
-                      color: primary,
-                    ),
-                    child: Center(
-                        child: Text(
-                      '4',
-                      style: bold16White(),
-                    )),
+      child: InkWell(
+        onTap: onTap,
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            Row(
+              children: [
+                ClipRRect(
+                  borderRadius: BorderRadius.circular(15),
+                  child: SizedBox(
+                    height: width * 0.2,
+                    width: width * 0.2,
+                    child: Container(
+                        color: primary,
+                        child: const Icon(
+                          Ionicons.bulb,
+                          size: 50,
+                          color: Colors.white,
+                        )),
                   ),
-                ],
-              ),
-            ],
-          ),
-          const Icon(Ionicons.chevron_forward,size: 35,)
-        ],
+                ),
+                const SizedBox(
+                  width: 15,
+                ),
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Text(
+                      status,
+                      style: med14prim50(),
+                    ),
+                    Text(
+                      roomName,
+                      style: bold20Prim(),
+                    ),
+                    Container(
+                      width: 50,
+                      height: 25,
+                      decoration: BoxDecoration(
+                        borderRadius: BorderRadius.circular(7),
+                        color: primary,
+                      ),
+                      child: Center(
+                          child: Text(
+                        totalDevice,
+                        style: bold16White(),
+                      )),
+                    ),
+                  ],
+                ),
+              ],
+            ),
+            Icon(
+              Ionicons.chevron_forward,
+              size: 35,
+            )
+          ],
+        ),
       ),
     );
   }
