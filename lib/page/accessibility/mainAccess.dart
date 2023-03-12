@@ -1,5 +1,7 @@
 // ignore_for_file: avoid_unnecessary_containers
 
+import 'dart:convert';
+
 import 'package:flutter/material.dart';
 import 'package:flutter/src/widgets/container.dart';
 import 'package:flutter/src/widgets/framework.dart';
@@ -8,6 +10,7 @@ import 'package:flutter_smartclass/global/textstyle.dart';
 import 'package:flutter_smartclass/page/accessibility/room/mainRoom.dart';
 import 'package:flutter_smartclass/widget/widgetAppbar.dart';
 import 'package:ionicons/ionicons.dart';
+import 'package:http/http.dart' as http;
 
 class AccessPage extends StatefulWidget {
   const AccessPage({super.key});
@@ -17,6 +20,24 @@ class AccessPage extends StatefulWidget {
 }
 
 class _AccessPageState extends State<AccessPage> {
+
+late List cardRoom = [];
+
+  @override
+  void initState() {
+    fetchApi();
+    super.initState();
+  }
+
+  void fetchApi() async {
+    String apiUrl = 'http://smartlearning.solusi-rnd.tech/api/data-rooms';
+    http.Response response = await http.get(Uri.parse(apiUrl));
+    var result = jsonDecode(response.body);
+    setState(() {
+      cardRoom = jsonDecode(response.body);
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     final width = MediaQuery.of(context).size.width;
@@ -27,6 +48,7 @@ class _AccessPageState extends State<AccessPage> {
           margin: const EdgeInsets.symmetric(horizontal: 12, vertical: 20),
           child: Column(
             children: [
+              for(var data in cardRoom)
               RoomWidget(
                   width: width,
                   onTap: () {
@@ -35,9 +57,9 @@ class _AccessPageState extends State<AccessPage> {
                       MaterialPageRoute(builder: (context) => RoomPage()),
                     );
                   },
-                  status: 'Connected',
-                  roomName: 'Room 1',
-                  totalDevice: '4')
+                  status: '${data['uuid']}',
+                  roomName: '${data['name_room']}',
+                  totalDevice: '${data['available_devices']}')
             ],
           ),
         ),
@@ -94,9 +116,15 @@ class RoomWidget extends StatelessWidget {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    Text(
-                      status,
-                      style: med14prim50(),
+                    Column(
+                      children: [
+                        Text(
+                          status,
+                          overflow: TextOverflow.ellipsis,
+                          maxLines: 1,
+                          style: med14prim50(), 
+                        ),
+                      ],
                     ),
                     Text(
                       roomName,

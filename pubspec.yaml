@@ -41,6 +41,10 @@ dependencies:
   flutter_switch: ^0.3.2
   ionicons: ^0.2.2
   percent_indicator: ^4.2.3
+  geolocator: ^9.0.2
+  http: ^0.13.5
+  permission_handler: ^10.2.0
+  shared_preferences: ^2.0.18
 
 dev_dependencies:
   flutter_test:

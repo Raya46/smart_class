@@ -1,9 +1,15 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_smartclass/mainNavigation.dart';
+import 'package:flutter_smartclass/page/accessibility/room/loginPage.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
-void main() {
-  runApp(const MyApp());
+Future<void> main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  SharedPreferences prefs = await SharedPreferences.getInstance();
+  String? token = prefs.getString('token');
+    print("login:" + token.toString());
+  runApp(MaterialApp(home: token == null ? LoginPage() : NavigationPage()));
 }
 
 class MyApp extends StatelessWidget {
@@ -13,6 +19,7 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
+      debugShowCheckedModeBanner: false,
       title: 'Flutter Demo',
       theme: ThemeData(
         fontFamily: GoogleFonts.inter().fontFamily,
@@ -21,7 +28,7 @@ class MyApp extends StatelessWidget {
           backgroundColor: Color.fromRGBO(51, 51, 51, 1),
         ),
       ),
-      home: const NavigationPage(),
+      home: LoginPage(),
     );
   }
 }

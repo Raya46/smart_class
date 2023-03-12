@@ -1,5 +1,7 @@
 // ignore_for_file: file_names, implementation_imports, unnecessary_import, unused_import, prefer_const_literals_to_create_immutables, prefer_const_constructors, unused_local_variable
 
+import 'dart:convert';
+
 import 'package:flutter/material.dart';
 import 'package:flutter/src/widgets/container.dart';
 import 'package:flutter/src/widgets/framework.dart';
@@ -11,22 +13,29 @@ import 'package:flutter_smartclass/widget/widgetAppbar.dart';
 import 'package:flutter_switch/flutter_switch.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/intl.dart';
+import 'package:permission_handler/permission_handler.dart';
+import 'package:http/http.dart' as http;
+import 'package:geolocator/geolocator.dart';
 
 class HomePage extends StatefulWidget {
-  const HomePage({super.key});
+  var temp;
+  var weather;
+  var icon;
+  HomePage({super.key});
 
   @override
   State<HomePage> createState() => _HomePageState();
 }
 
 class _HomePageState extends State<HomePage> {
+
   @override
   Widget build(BuildContext context) {
     final width = MediaQuery.of(context).size.width;
     final height = MediaQuery.of(context).size.height;
     return Scaffold(
       backgroundColor: Colors.white,
-      appBar: homeAppbar(),
+      appBar: homeAppbar(context),
       body: CustomScrollView(
         slivers: [
           SliverFillRemaining(
@@ -34,7 +43,15 @@ class _HomePageState extends State<HomePage> {
             child: Container(
               color: Colors.white,
               child: Column(children: <Widget>[
-                Expanded(flex: 2, child: HeaderCard(width: width)),
+                // if(widget.temp != null)
+                Expanded(
+                    flex: 2,
+                    child: HeaderCard(
+                      width: width,
+                      icon: '${widget.icon}',
+                      temp: '${widget.temp}',
+                      weather: '${widget.weather}',
+                    ),),
                 Expanded(flex: 7, child: allCard(width: width)),
               ]),
             ),
@@ -123,7 +140,7 @@ class _allCardState extends State<allCard> {
                             });
                           },
                           child: cardSwitch(width: widget.width)),
-                      ]),
+                    ]),
               ],
             ),
           )),

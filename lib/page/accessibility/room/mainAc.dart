@@ -13,7 +13,7 @@ class AcPage extends StatefulWidget {
 }
 
 class _AcPageState extends State<AcPage> {
-  bool value = false;
+  bool switchvalue = false;
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -28,171 +28,174 @@ class _AcPageState extends State<AcPage> {
         centerTitle: true,
         actions: const [],
       ),
-      body: Container(
-          child: Column(
+      body: Column(
         children: [
-          Divider(
-            height: MediaQuery.of(context).size.height / 30,
-            color: Colors.transparent,
-          ),
-          Expanded(
-              flex: 1,
-              child: Container(
-                margin: const EdgeInsets.only(
-                  left: 16.0,
-                  right: 16.0,
-                ),
+      Divider(
+        height: MediaQuery.of(context).size.height / 30,
+        color: Colors.transparent,
+      ),
+      Expanded(
+          flex: 0,
+          child: Container(
+            margin: const EdgeInsets.only(
+              left: 16.0,
+              right: 16.0,
+            ),
+            child: Container(
+                decoration: BoxDecoration(
+                    color: secondary60,
+                    borderRadius: BorderRadius.circular(15)),
                 child: Container(
-                    decoration: BoxDecoration(
-                        color: secondary60,
-                        borderRadius: BorderRadius.circular(15)),
-                    child: Container(
-                      margin: const EdgeInsets.only(
-                        left: 19.0,
-                        right: 19.0,
+                  margin: const EdgeInsets.only(
+                    left: 19.0,
+                    right: 19.0,
+                  ),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Text(
+                        'Device Status',
+                        style: GoogleFonts.inter(color: primary),
                       ),
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      Switch(
+                        value: switchvalue,
+                        onChanged: (value) {
+                          setState(() {
+                            switchvalue = value;
+                          });
+                        },
+                      )
+                    ],
+                  ),
+                )),
+          )),
+      Expanded(
+          flex: 4,
+          child: Container(
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                CircularPercentIndicator(
+                  radius: 95.0,
+                  animation: true,
+                  lineWidth: 15,
+                  percent: 0.25,
+                  circularStrokeCap: CircularStrokeCap.round,
+                  center: Container(
+                    width: MediaQuery.of(context).size.width,
+                    height: MediaQuery.of(context).size.height,
+                    decoration: BoxDecoration(
+                      color: Colors.transparent,
+                      shape: BoxShape.circle,
+                    ),
+                    child: Center(
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
                         children: [
                           Text(
-                            'Device Status',
-                            style: GoogleFonts.inter(color: primary),
+                            '20°C',
+                            style: GoogleFonts.chakraPetch(
+                              color: primary,
+                              fontSize: 30.0,
+                              fontWeight: FontWeight.bold,
+                            ),
                           ),
-                          Switch(
-                            value: value,
-                            onChanged: (value) {},
-                          )
+                          Text(
+                            'Celsius',
+                            style: GoogleFonts.inter(
+                              color: primary,
+                              fontSize: 15.0,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
                         ],
                       ),
-                    )),
-              )),
-          Expanded(
-              flex: 4,
-              child: Container(
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
+                    ),
+                  ),
+                  progressColor: primary,
+                )
+              ],
+            ),
+          )),
+      Expanded(
+          flex: 2,
+          child: Container(
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceAround,
+              children: [
+                Column(
                   children: [
-                    CircularPercentIndicator(
-                      radius: 95.0,
-                      animation: true,
-                      lineWidth: 15,
-                      percent: 0.25,
-                      circularStrokeCap: CircularStrokeCap.round,
-                      center: Container(
-                        width: MediaQuery.of(context).size.width,
-                        height: MediaQuery.of(context).size.height,
-                        decoration: BoxDecoration(
-                          color: Colors.transparent,
-                          shape: BoxShape.circle,
-                        ),
-                        child: Center(
-                          child: Column(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-                              Text(
-                                '20°C',
-                                style: GoogleFonts.chakraPetch(
-                                  color: primary,
-                                  fontSize: 30.0,
-                                  fontWeight: FontWeight.bold,
-                                ),
-                              ),
-                              Text(
-                                'Celsius',
-                                style: GoogleFonts.inter(
-                                  color: primary,
-                                  fontSize: 15.0,
-                                  fontWeight: FontWeight.bold,
-                                ),
-                              ),
-                            ],
-                          ),
+                    Card(
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(15),
+                      ),
+                      color: primary,
+                      child: Padding(
+                        padding: const EdgeInsets.all(8.0),
+                        child: const Icon(
+                          Icons.speed,
+                          color: Colors.white,
+                          size: 55.0,
                         ),
                       ),
-                      progressColor: primary,
-                    )
+                    ),
+                    Text('Speed', style: GoogleFonts.inter(color: primary),)
                   ],
                 ),
-              )),
-          Expanded(
-              flex: 2,
-              child: Container(
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceAround,
+                Column(
                   children: [
-                    Column(
-                      children: [
-                        Card(
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(15),
-                          ),
-                          color: primary,
-                          child: Padding(
-                            padding: const EdgeInsets.all(8.0),
-                            child: const Icon(
-                              Icons.speed,
-                              color: Colors.white,
-                              size: 55.0,
-                            ),
-                          ),
+                    Card(
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(15),
+                      ),
+                      color: primary,
+                      child: Padding(
+                        padding: const EdgeInsets.all(8.0),
+                        child: const Icon(
+                          Icons.directions,
+                          color: Colors.white,
+                          size: 55.0,
                         ),
-                        Text('Speed', style: GoogleFonts.inter(color: primary),)
-                      ],
+                      ),
                     ),
-                    Column(
-                      children: [
-                        Card(
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(15),
-                          ),
-                          color: primary,
-                          child: Padding(
-                            padding: const EdgeInsets.all(8.0),
-                            child: const Icon(
-                              Icons.directions,
-                              color: Colors.white,
-                              size: 55.0,
-                            ),
-                          ),
-                        ),
-                        Text('Swing', style: GoogleFonts.inter(color: primary),)
-                      ],
-                    ),
-                    Column(
-                      children: [
-                        Card(
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(15),
-                          ),
-                          color: primary,
-                          child: Padding(
-                            padding: const EdgeInsets.all(8.0),
-                            child: const Icon(
-                              Icons.air,
-                              color: Colors.white,
-                              size: 55.0,
-                            ),
-                          ),
-                        ),
-                        Text('Direction', style: GoogleFonts.inter(color: primary),)
-                      ],
-                    ),
+                    Text('Swing', style: GoogleFonts.inter(color: primary),)
                   ],
                 ),
-              )),
-          Expanded(
-              flex: 2,
-              child: Container(
-                height: MediaQuery.of(context).size.height / 2.5,
-                decoration: BoxDecoration(
-                  color: secondary,
-                  borderRadius: BorderRadius.only(
-                      topLeft: Radius.circular(20),
-                      topRight: Radius.circular(20)),
+                Column(
+                  children: [
+                    Card(
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(15),
+                      ),
+                      color: primary,
+                      child: Padding(
+                        padding: const EdgeInsets.all(8.0),
+                        child: const Icon(
+                          Icons.air,
+                          color: Colors.white,
+                          size: 55.0,
+                        ),
+                      ),
+                    ),
+                    Text('Direction', style: GoogleFonts.inter(color: primary),)
+                  ],
                 ),
-              )),
+              ],
+            ),
+          )),
+      Expanded(
+          flex: 2,
+          child: Container(
+            height: MediaQuery.of(context).size.height / 2.5,
+            decoration: BoxDecoration(
+              color: secondary,
+              borderRadius: BorderRadius.only(
+                  topLeft: Radius.circular(20),
+                  topRight: Radius.circular(20)),
+            ),
+          )),
         ],
-      )),
+      ),
     );
   }
 }

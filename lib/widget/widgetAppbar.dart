@@ -1,9 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_smartclass/global/color.dart';
 import 'package:flutter_smartclass/global/textstyle.dart';
+import 'package:flutter_smartclass/page/accessibility/profilePage.dart';
+import 'package:flutter_smartclass/page/accessibility/room/loginPage.dart';
+import 'package:flutter_smartclass/services/user_services.dart';
 import 'package:google_fonts/google_fonts.dart';
 
-AppBar homeAppbar() {
+
+AppBar homeAppbar(BuildContext context) {
   return AppBar(
     toolbarHeight: 80,
     backgroundColor: Colors.transparent,
@@ -35,9 +39,12 @@ AppBar homeAppbar() {
               color: primary,
             ),
             onPressed: () {
+              logout().then((value) => {
+                Navigator.of(context).pushAndRemoveUntil(MaterialPageRoute(builder: (context)=>LoginPage()), (route) => false)
+              });
               // Navigator.push(
               //   context,
-              //   MaterialPageRoute(builder: (context) => ControlPage()),
+              //   MaterialPageRoute(builder: (context) => ProfilePage1()),
               // );
             },
           ),

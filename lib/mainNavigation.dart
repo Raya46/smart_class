@@ -18,9 +18,7 @@ class NavigationPage extends StatefulWidget {
 class _NavigationPageState extends State<NavigationPage> {
   int currentIndex = 0;
   final screens = [
-    const HomePage(),
-    const AccessPage(),
-    const HomePage(),
+    HomePage(),
     const AccessPage(),
   ];
 
@@ -29,6 +27,7 @@ class _NavigationPageState extends State<NavigationPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       floatingActionButton: const floatingButton(),
+      floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,
       body: screens[currentIndex],
       bottomNavigationBar: Theme(
         data: Theme.of(context).copyWith(
@@ -62,7 +61,6 @@ class floatingButton extends StatelessWidget {
         child: FloatingActionButton(
           backgroundColor: highlight,
           foregroundColor: secondary,
-          mini: true,
           onPressed: () {
             Navigator.push(
             context,
@@ -85,15 +83,5 @@ const _navBarItems = [
     icon: Icon(Ionicons.accessibility),
     activeIcon: Icon(Ionicons.accessibility),
     label: 'Accessibility',
-  ),
-  BottomNavigationBarItem(
-    icon: Icon(Ionicons.musical_notes),
-    activeIcon: Icon(Ionicons.musical_notes),
-    label: 'Audio',
-  ),
-  BottomNavigationBarItem(
-    icon: Icon(Ionicons.person),
-    activeIcon: Icon(Ionicons.person),
-    label: 'Profile',
   ),
 ];

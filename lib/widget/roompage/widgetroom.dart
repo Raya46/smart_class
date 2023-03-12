@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_smartclass/global/color.dart';
+import 'package:flutter_smartclass/page/accessibility/room/audioPage.dart';
+import 'package:flutter_smartclass/page/accessibility/room/mainAc.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 class CircleList extends StatelessWidget {
@@ -18,12 +20,6 @@ class CircleList extends StatelessWidget {
     this.iconColor = primary,
     this.isSelected = false,
   }) : super(key: key);
-
-  void changeColor() {
-    color = color == secondary ? primary : secondary;
-    iconColor = iconColor == primary ? highlight : primary;
-    print(color);
-  }
 
   @override
   Widget build(BuildContext context) {

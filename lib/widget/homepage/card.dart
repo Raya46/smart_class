@@ -1,5 +1,7 @@
 // ignore_for_file: camel_case_types
 
+import 'dart:convert';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_smartclass/global/color.dart';
 import 'package:flutter_smartclass/global/textstyle.dart';
@@ -8,19 +10,74 @@ import 'package:flutter_switch/flutter_switch.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/intl.dart';
 import 'package:ionicons/ionicons.dart';
+import 'package:permission_handler/permission_handler.dart';
+import 'package:http/http.dart' as http;
+import 'package:geolocator/geolocator.dart';
 
-class HeaderCard extends StatelessWidget {
-  const HeaderCard({
-    Key? key,
-    required this.width,
-  }) : super(key: key);
+class HeaderCard extends StatefulWidget {
+  var temp;
+  var weather;
+  var icon;
+  HeaderCard(
+      {Key? key, required this.width, this.weather, this.icon, this.temp})
+      : super(key: key);
 
   final double width;
 
   @override
+  State<HeaderCard> createState() => _HeaderCardState();
+}
+
+class _HeaderCardState extends State<HeaderCard> {
+  var temp;
+  var weather;
+  var icon;
+  late List component = [];
+
+  @override
+    void initState() {
+    super.initState();
+    _getLocationPermission();
+    getCurrentLocation();
+  }
+
+  Future<void> _getLocationPermission() async {
+    final PermissionStatus permission =
+        await Permission.locationWhenInUse.status;
+
+    if (permission == PermissionStatus.denied) {
+      final PermissionStatus permissionStatus =
+          await Permission.locationWhenInUse.request();
+
+      if (permissionStatus != PermissionStatus.granted) {
+        throw Exception('Location permission is denied');
+      }
+    }
+  }
+
+  Future<void> getCurrentLocation() async {
+    Position position = await Geolocator.getCurrentPosition(
+        desiredAccuracy: LocationAccuracy.high);
+    getWeatherData(position.latitude, position.longitude);
+  }
+
+  Future<void> getWeatherData(double lat, double lon) async {
+    String apiKey = "ca2391bde7dc6773060f0709b7272a48";
+    String apiUrl =
+        "http://api.openweathermap.org/data/2.5/weather?lat=$lat&lon=$lon&appid=$apiKey&units=metric";
+    http.Response response = await http.get(Uri.parse(apiUrl));
+    var result = jsonDecode(response.body);
+    setState(() {
+      component = jsonDecode(response.body);
+      temp = result['main']['temp'];
+      weather = result['weather'][0]['main'];
+      icon = result['weather'][0]['icon'];
+    });
+  }
+  @override
   Widget build(BuildContext context) {
     return Container(
-      width: width,
+      width: widget.width,
       margin: const EdgeInsets.symmetric(horizontal: 16),
       child: Card(
         elevation: 20,
@@ -43,20 +100,29 @@ class HeaderCard extends StatelessWidget {
                           shaderCallback: (Rect bounds) {
                             return LinearColor().createShader(bounds);
                           },
-                          child: Text("18°C", style: bold24White())),
+                          child: Column(
+                            children: [
+                              if (component[0]['main']['temp'] != null)
+                                Text('${component[0]['main']['temp']?.toStringAsFixed(0) ?? ''}\u00B0C',
+                                    style: bold24White()),
+                            ],
+                          )),
                       const SizedBox(height: 8),
-                      Text('Cloudy', style: bold16White()),
+                      if (component[0]['weather'][0]['main'] != null)
+                        Text(component[0]['weather'][0]['main']?.toString() ?? '', style: bold16White()),
                       const SizedBox(height: 3),
                       Text(
                         DateFormat('dd MMMM yyyy').format(DateTime.now()),
                         style: med12Sec(),
                       ),
                     ]),
-                Icon(
-                  Icons.cloud,
-                  size: 70,
-                  color: secondary,
-                )
+                if (icon != null)
+                  Image.network(
+                    "http://openweathermap.org/img/wn/${component[0]['weather'][0]['icon']}@2x.png",
+                    fit: BoxFit.contain,
+                    width: 100,
+                    height: 100,
+                  ),
               ]),
               const Divider(
                 thickness: 1,

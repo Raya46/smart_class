@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/src/widgets/container.dart';
 import 'package:flutter/src/widgets/framework.dart';
 import 'package:flutter_smartclass/global/color.dart';
+import 'package:flutter_smartclass/page/accessibility/room/audioPage.dart';
 import 'package:flutter_smartclass/page/accessibility/room/mainAc.dart';
 import 'package:flutter_smartclass/widget/roompage/widgetroom.dart';
 import 'package:ionicons/ionicons.dart';
@@ -17,6 +18,8 @@ int selectedCardIndex = -1;
 
 class _RoomPageState extends State<RoomPage> {
   bool switchValue = false;
+  bool lampValue = false;
+  bool curtainsValue = false;
 
   List<CircleList> cardList = [
     CircleList(title: 'AC', onTap: () {}, icon: Ionicons.snow),
@@ -38,6 +41,56 @@ class _RoomPageState extends State<RoomPage> {
       ),
     ),
   ];
+
+  @override
+  void initState(){
+    super.initState();
+    setState(() {
+      selectedCardIndex = 0;
+    });
+  }
+
+  move() {
+    if (selectedCardIndex == 0) {
+      Navigator.push(
+        context,
+        MaterialPageRoute(builder: (context) => AcPage()),
+      );
+    } else {
+      Navigator.push(
+        context,
+        MaterialPageRoute(builder: (context) => AudioPage()),
+      );
+    }
+  }
+
+  switchterm() {
+    if (selectedCardIndex == 1) {
+      return Switch(
+          value: lampValue,
+          onChanged: (value) {
+            setState(() {
+              lampValue = value;
+            });
+          });
+    } else if (selectedCardIndex == 2) {
+      return Switch(
+          value: curtainsValue,
+          onChanged: (value) {
+            setState(() {
+              curtainsValue = value;
+            });
+          });
+    } else if (selectedCardIndex == 3) {
+      return Switch(
+          value: switchValue,
+          onChanged: (value) {
+            setState(() {
+              switchValue = value;
+            });
+          });
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -79,7 +132,8 @@ class _RoomPageState extends State<RoomPage> {
                     isSelected: index == selectedCardIndex,
                   );
                 },
-              ))),
+              )),
+              ),
           Expanded(
               flex: 5,
               child: Container(
@@ -92,19 +146,17 @@ class _RoomPageState extends State<RoomPage> {
                   itemCount: cardDeviceList.length,
                   itemBuilder: (context, index) {
                     return CardDevice(
-                        icon: cardDeviceList[index].icon,
-                        status: cardDeviceList[index].status,
-                        nameDevice: cardDeviceList[index].nameDevice,
-                        onTap: cardDeviceList[index].onTap,
-                        leadingButton: cardList[index].title == 'tes'
-                            ? cardDeviceList[index].leadingButton
-                            : Switch(
-                                value: switchValue,
-                                onChanged: (value) {
-                                  setState(() {
-                                    switchValue = value;
-                                  });
-                                }));
+                      icon: cardDeviceList[index].icon,
+                      status: cardDeviceList[index].status,
+                      nameDevice: cardDeviceList[index].nameDevice,
+                      onTap: selectedCardIndex == 0 || selectedCardIndex == 4
+                          ? move
+                          : cardDeviceList[index].onTap,
+                      leadingButton:
+                          selectedCardIndex == 0 || selectedCardIndex == 4
+                              ? cardDeviceList[index].leadingButton
+                              : switchterm()
+                    );
                   },
                 ),
               )),
