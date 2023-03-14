@@ -8,9 +8,7 @@ import 'package:flutter_smartclass/global/constant.dart';
 import 'package:flutter_smartclass/mainNavigation.dart';
 import 'package:flutter_smartclass/model/api_response.dart';
 import 'package:flutter_smartclass/model/user.dart';
-import 'package:flutter_smartclass/page/home/mainHome.dart';
 import 'package:flutter_smartclass/services/user_services.dart';
-import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
 
 class LoginPage extends StatefulWidget {
@@ -46,7 +44,7 @@ class _LoginPageState extends State<LoginPage> {
     await pref.setString('token', user.token ?? '');
     await pref.setInt('id', user.id ?? 0);
     Navigator.of(context).pushAndRemoveUntil(
-        MaterialPageRoute(builder: (context) => NavigationPage()), (route) => false);
+        MaterialPageRoute(builder: (context) => NavigationPage(uuid: '',)), (route) => false);
   }
 
   @override
@@ -112,7 +110,7 @@ class _LoginPageState extends State<LoginPage> {
                               bottom: 10,
                             ),
                             child: Text(
-                              'S P K L U',
+                              'Smart Learning',
                               style: TextStyle(
                                 fontSize: 20,
                                 fontFamily: 'Inter',
@@ -164,16 +162,10 @@ class _LoginPageState extends State<LoginPage> {
                                       bottom: 10,
                                     ),
                                     child: ElevatedButton(onPressed: (){
-                                      // print(emailCon.text);
-                                      // print(passCon.text);
-                                      // _submit();
+                                      print(emailCon.text);
+                                      print(passCon.text);
                                       loginUser();
-                                      // login(emailCon.text, passCon.text);
-                                      // Navigator.push(
-                                      // context,
-                                      // MaterialPageRoute(builder: (context) => HomePage()),
-                                      // );
-                                    },child: Text('tre'),)),
+                                    },child: Text('login'),)),
                               ],
                             ),
                           ),

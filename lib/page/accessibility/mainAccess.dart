@@ -20,12 +20,15 @@ class AccessPage extends StatefulWidget {
 }
 
 class _AccessPageState extends State<AccessPage> {
-
-late List cardRoom = [];
+  late List cardRoom = [];
 
   @override
   void initState() {
-    fetchApi();
+    try {
+      fetchApi();
+    } catch (e) {
+      print(e);
+    }
     super.initState();
   }
 
@@ -48,18 +51,18 @@ late List cardRoom = [];
           margin: const EdgeInsets.symmetric(horizontal: 12, vertical: 20),
           child: Column(
             children: [
-              for(var data in cardRoom)
-              RoomWidget(
-                  width: width,
-                  onTap: () {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(builder: (context) => RoomPage()),
-                    );
-                  },
-                  status: '${data['uuid']}',
-                  roomName: '${data['name_room']}',
-                  totalDevice: '${data['available_devices']}')
+              for (var data in cardRoom)
+                RoomWidget(
+                    width: width,
+                    onTap: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(builder: (context) => RoomPage(roomName: '${data['name_room']}',)),
+                      );
+                    },
+                    status: data['available_devices'] > 0 ? 'Connected' : 'Not Connected',
+                    roomName: '${data['name_room']}',
+                    totalDevice: '${data['available_devices']}')
             ],
           ),
         ),
@@ -122,7 +125,7 @@ class RoomWidget extends StatelessWidget {
                           status,
                           overflow: TextOverflow.ellipsis,
                           maxLines: 1,
-                          style: med14prim50(), 
+                          style: med14prim50(),
                         ),
                       ],
                     ),

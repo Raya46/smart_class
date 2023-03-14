@@ -2,6 +2,7 @@ import 'dart:convert';
 
 import 'package:flutter_smartclass/global/constant.dart';
 import 'package:flutter_smartclass/model/api_response.dart';
+import 'package:flutter_smartclass/model/room.dart';
 import 'package:flutter_smartclass/model/user.dart';
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
@@ -107,4 +108,16 @@ Future<int> getId() async {
 Future<bool> logout() async {
   SharedPreferences pref = await SharedPreferences.getInstance();
   return await pref.remove('token');
+}
+
+
+ Future<List<Room>> fetchApiRoom() async {
+  final response = await http.get(Uri.parse('http://smartlearning.solusi-rnd.tech/api/data-rooms'));
+  if (response.statusCode == 200) {
+    List<dynamic> body = jsonDecode(response.body);
+    List<Room> rooms = body.map((room) => Room.fromJson(room)).toList();
+    return rooms;
+  } else {
+    throw "Failed to fetch items";
+  }
 }

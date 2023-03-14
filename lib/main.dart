@@ -9,7 +9,7 @@ Future<void> main() async {
   SharedPreferences prefs = await SharedPreferences.getInstance();
   String? token = prefs.getString('token');
     print("login:" + token.toString());
-  runApp(MaterialApp(home: token == null ? LoginPage() : NavigationPage()));
+  runApp(MaterialApp(home: token == null ? LoginPage() : NavigationPage(uuid: '',)));
 }
 
 class MyApp extends StatelessWidget {

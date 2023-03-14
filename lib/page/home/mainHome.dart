@@ -1,6 +1,4 @@
-// ignore_for_file: file_names, implementation_imports, unnecessary_import, unused_import, prefer_const_literals_to_create_immutables, prefer_const_constructors, unused_local_variable
-
-import 'dart:convert';
+// ignore_for_file: file_names, implementation_imports, unnecessary_import, unused_import, prefer_const_literals_to_create_immutables, prefer_const_constructors, unused_local_variable, prefer_typing_uninitialized_variables
 
 import 'package:flutter/material.dart';
 import 'package:flutter/src/widgets/container.dart';
@@ -13,22 +11,20 @@ import 'package:flutter_smartclass/widget/widgetAppbar.dart';
 import 'package:flutter_switch/flutter_switch.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/intl.dart';
-import 'package:permission_handler/permission_handler.dart';
-import 'package:http/http.dart' as http;
-import 'package:geolocator/geolocator.dart';
+import 'package:ionicons/ionicons.dart';
 
 class HomePage extends StatefulWidget {
   var temp;
   var weather;
   var icon;
-  HomePage({super.key});
+  final String uuid;
+  HomePage({super.key, required this.uuid});
 
   @override
   State<HomePage> createState() => _HomePageState();
 }
 
 class _HomePageState extends State<HomePage> {
-
   @override
   Widget build(BuildContext context) {
     final width = MediaQuery.of(context).size.width;
@@ -43,141 +39,21 @@ class _HomePageState extends State<HomePage> {
             child: Container(
               color: Colors.white,
               child: Column(children: <Widget>[
-                // if(widget.temp != null)
                 Expanded(
-                    flex: 2,
-                    child: HeaderCard(
-                      width: width,
-                      icon: '${widget.icon}',
-                      temp: '${widget.temp}',
-                      weather: '${widget.weather}',
-                    ),),
-                Expanded(flex: 7, child: allCard(width: width)),
+                  flex: 2,
+                  child: HeaderCard(
+                    width: width,
+                    icon: '${widget.icon}',
+                    temp: '${widget.temp}',
+                    weather: '${widget.weather}',
+                  ),
+                ),
+                Expanded(flex: 7, child: allCard(width: width, varType: false,)),
               ]),
             ),
           ),
         ],
       ),
     );
-  }
-}
-
-class allCard extends StatefulWidget {
-  const allCard({
-    Key? key,
-    required this.width,
-  }) : super(key: key);
-
-  final double width;
-
-  @override
-  State<allCard> createState() => _allCardState();
-}
-
-class _allCardState extends State<allCard> {
-  @override
-  Widget build(BuildContext context) {
-    return Column(children: [
-      Container(
-        margin: EdgeInsets.symmetric(horizontal: 16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.center,
-          children: [
-            SizedBox(
-              height: 15,
-            ),
-            Row(
-              children: [
-                Text("Devices", style: bold20Prim()),
-              ],
-            ),
-            SizedBox(
-              height: 15,
-            ),
-            Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
-              InkWell(
-                  onTap: () {
-                    setState(() {
-                      lamp = !lamp;
-                    });
-                  },
-                  child: cardLamp(width: widget.width)),
-              InkWell(
-                  onTap: () {
-                    setState(() {
-                      ac = !ac;
-                    });
-                  },
-                  child: cardAc(width: widget.width)),
-            ]),
-          ],
-        ),
-      ),
-      Expanded(
-          flex: 2,
-          child: Container(
-            margin: EdgeInsets.symmetric(horizontal: 16),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.center,
-              children: [
-                SizedBox(
-                  height: 15,
-                ),
-                Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      InkWell(
-                          onTap: () {
-                            setState(() {
-                              curtain = !curtain;
-                            });
-                          },
-                          child: cardCurtain(width: widget.width)),
-                      InkWell(
-                          onTap: () {
-                            setState(() {
-                              switchs = !switchs;
-                            });
-                          },
-                          child: cardSwitch(width: widget.width)),
-                    ]),
-              ],
-            ),
-          )),
-      Expanded(
-          flex: 2,
-          child: Container(
-            margin: EdgeInsets.symmetric(horizontal: 16),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.center,
-              children: [
-                SizedBox(
-                  height: 15,
-                ),
-                Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      InkWell(
-                          onTap: () {
-                            setState(() {
-                              board = !board;
-                            });
-                          },
-                          child: cardBoard(width: widget.width)),
-                      InkWell(
-                          onTap: () {
-                            setState(() {
-                              audio = !audio;
-                            });
-                          },
-                          child: cardAudio(width: widget.width)),
-                    ]),
-              ],
-            ),
-          )),
-      SizedBox(
-        height: 50,
-      )
-    ]);
   }
 }

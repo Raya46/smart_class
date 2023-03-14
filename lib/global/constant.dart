@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 
-const baseApi = 'http://192.168.105.56:8000/api';
-const loginApi = 'http://192.168.105.56:8000/api/login';
+const baseApi = 'http://192.168.167.56:8000/api';
+const loginApi = 'http://192.168.167.56:8000/api/login';
 const registerApi = '$baseApi/register';
 const logoutApi = '$baseApi/logout';
 const userApi = '$baseApi/user';

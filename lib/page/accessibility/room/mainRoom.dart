@@ -1,3 +1,5 @@
+import 'dart:convert';
+
 import 'package:flutter/material.dart';
 import 'package:flutter/src/widgets/container.dart';
 import 'package:flutter/src/widgets/framework.dart';
@@ -6,9 +8,11 @@ import 'package:flutter_smartclass/page/accessibility/room/audioPage.dart';
 import 'package:flutter_smartclass/page/accessibility/room/mainAc.dart';
 import 'package:flutter_smartclass/widget/roompage/widgetroom.dart';
 import 'package:ionicons/ionicons.dart';
+import 'package:http/http.dart' as http;
 
 class RoomPage extends StatefulWidget {
-  const RoomPage({super.key});
+  var roomName;
+  RoomPage({super.key, required this.roomName});
 
   @override
   State<RoomPage> createState() => _RoomPageState();
@@ -20,13 +24,14 @@ class _RoomPageState extends State<RoomPage> {
   bool switchValue = false;
   bool lampValue = false;
   bool curtainsValue = false;
+  bool isSelected = false;
 
-  List<CircleList> cardList = [
-    CircleList(title: 'AC', onTap: () {}, icon: Ionicons.snow),
-    CircleList(title: 'Lamp', onTap: () {}, icon: Ionicons.bulb),
-    CircleList(title: 'Curtains', onTap: () {}, icon: Icons.curtains),
-    CircleList(title: 'Switch', onTap: () {}, icon: Icons.switch_right),
-    CircleList(title: 'Audio', onTap: () {}, icon: Icons.audiotrack),
+  late List cardList = [
+    // CircleList(title: 'AC', onTap: () {}, icon: Ionicons.snow),
+    // CircleList(title: 'Lamp', onTap: () {}, icon: Ionicons.bulb),
+    // CircleList(title: 'Curtains', onTap: () {}, icon: Icons.curtains),
+    // CircleList(title: 'Switch', onTap: () {}, icon: Icons.switch_right),
+    // CircleList(title: 'Audio', onTap: () {}, icon: Icons.audiotrack),
   ];
 
   List<CardDevice> cardDeviceList = [
@@ -42,9 +47,19 @@ class _RoomPageState extends State<RoomPage> {
     ),
   ];
 
+  void fetchApi() async {
+    String apiUrl = 'http://smartlearning.solusi-rnd.tech/api/data-features';
+    http.Response response = await http.get(Uri.parse(apiUrl));
+    var result = jsonDecode(response.body);
+    setState(() {
+      cardList = jsonDecode(response.body);
+    });
+  }
+
   @override
-  void initState(){
+  void initState() {
     super.initState();
+    fetchApi();
     setState(() {
       selectedCardIndex = 0;
     });
@@ -56,7 +71,7 @@ class _RoomPageState extends State<RoomPage> {
         context,
         MaterialPageRoute(builder: (context) => AcPage()),
       );
-    } else {
+    } else if (selectedCardIndex == 4) {
       Navigator.push(
         context,
         MaterialPageRoute(builder: (context) => AudioPage()),
@@ -97,7 +112,7 @@ class _RoomPageState extends State<RoomPage> {
     return Scaffold(
       appBar: AppBar(
         title: Text(
-          'Room 1',
+          '${widget.roomName}',
           style: TextStyle(color: Colors.black),
         ),
         leading: BackButton(color: Colors.black),
@@ -112,54 +127,72 @@ class _RoomPageState extends State<RoomPage> {
             height: MediaQuery.of(context).size.height / 30,
           ),
           Expanded(
-              flex: 1,
-              child: Container(
-                  child: ListView.builder(
-                scrollDirection: Axis.horizontal,
-                itemCount: cardList.length,
-                itemBuilder: (context, index) {
-                  return CircleList(
-                    color: cardList[index].color,
-                    title: cardList[index].title,
-                    onTap: () {
-                      setState(() {
-                        selectedCardIndex = index;
-                      });
-                      print(selectedCardIndex);
-                    },
-                    icon: cardList[index].icon,
-                    iconColor: cardList[index].iconColor,
-                    isSelected: index == selectedCardIndex,
-                  );
-                },
-              )),
+            flex: 1,
+            child: Container(
+                child: ListView(scrollDirection: Axis.horizontal, children: [
+              Row(
+                children: [
+                  for (var data in cardList)
+                    CircleList(
+                      title: data['name_feature'],
+                      onTap: () {
+                        setState(() {
+                          selectedCardIndex = data['id'];
+                          print(selectedCardIndex);
+                          print(data['name_feature']);
+                        });
+                      },
+                      icon: data['name_feature'] == 'LAMP' ? Icons.lightbulb : Icons.device_unknown,
+                      color: isSelected ? primary : secondary,
+                      iconColor: isSelected ? highlight : primary,
+                      isSelected: data['id'] == selectedCardIndex ||
+                          data['name_feature'] == selectedCardIndex,
+                    )
+                ],
               ),
+            ])),
+          ),
           Expanded(
               flex: 5,
               child: Container(
-                margin: const EdgeInsets.only(
-                  left: 12.0,
-                  right: 12.0,
-                ),
-                child: ListView.builder(
-                  scrollDirection: Axis.vertical,
-                  itemCount: cardDeviceList.length,
-                  itemBuilder: (context, index) {
-                    return CardDevice(
-                      icon: cardDeviceList[index].icon,
-                      status: cardDeviceList[index].status,
-                      nameDevice: cardDeviceList[index].nameDevice,
-                      onTap: selectedCardIndex == 0 || selectedCardIndex == 4
-                          ? move
-                          : cardDeviceList[index].onTap,
-                      leadingButton:
-                          selectedCardIndex == 0 || selectedCardIndex == 4
-                              ? cardDeviceList[index].leadingButton
-                              : switchterm()
-                    );
-                  },
-                ),
-              )),
+                  margin: const EdgeInsets.only(
+                    left: 12.0,
+                    right: 12.0,
+                  ),
+                  child: Container(
+                    child: ListView(
+                      children: [
+                        for (var data in cardList)
+                          CardDevice(
+                            icon: Icons.device_unknown,
+                            status: '',
+                            nameDevice: '${data['name_feature']}',
+                            onTap: () {
+                              if (data['name_feature'] == 'AC') {
+                                Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                      builder: (context) => AcPage()),
+                                );
+                              } else if (data['name_feature'] == 'REMOTE') {
+                                Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                      builder: (context) => AudioPage()),
+                                );
+                              }
+                            },
+                            leadingButton: IconButton(
+                              onPressed: () {},
+                              icon: const Icon(
+                                Icons.add,
+                                size: 24.0,
+                              ),
+                            ),
+                          )
+                      ],
+                    ),
+                  ))),
         ],
       ),
     );
