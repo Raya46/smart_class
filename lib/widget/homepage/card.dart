@@ -1,27 +1,38 @@
 // ignore_for_file: camel_case_types
 
+import 'dart:async';
 import 'dart:convert';
-
 import 'package:flutter/material.dart';
 import 'package:flutter_smartclass/global/color.dart';
 import 'package:flutter_smartclass/global/textstyle.dart';
 import 'package:flutter_smartclass/global/var/bool.dart';
 import 'package:flutter_smartclass/model/room.dart';
+import 'package:flutter_smartclass/services/data_mqtt_services.dart';
+import 'package:flutter_smartclass/services/mqtt_services.dart';
 import 'package:flutter_smartclass/services/user_services.dart';
 import 'package:flutter_switch/flutter_switch.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/intl.dart';
 import 'package:ionicons/ionicons.dart';
+import 'package:mqtt_client/mqtt_client.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:http/http.dart' as http;
 import 'package:geolocator/geolocator.dart';
 
+// ignore: must_be_immutable
 class HeaderCard extends StatefulWidget {
   var temp;
   var weather;
   var icon;
+  MqttService2 mqttServices;
+
   HeaderCard(
-      {Key? key, required this.width, this.weather, this.icon, this.temp})
+      {Key? key,
+      required this.width,
+      this.weather,
+      this.icon,
+      this.temp,
+      required this.mqttServices})
       : super(key: key);
 
   final double width;
@@ -36,6 +47,7 @@ class _HeaderCardState extends State<HeaderCard> {
   var icon;
   bool _locationPermissionRequested = false;
   late List device = [];
+  late StreamSubscription subscription;
 
   @override
   void initState() {
@@ -43,9 +55,23 @@ class _HeaderCardState extends State<HeaderCard> {
     try {
       _getLocationPermission();
       getCurrentLocation();
+      widget.mqttServices.connectAndSubscribe().then((_) {
+        subscription = widget.mqttServices.client2!.updates!.listen(receive);
+      });
     } catch (e) {
       print(e);
     }
+  }
+
+  void receive(List<MqttReceivedMessage<MqttMessage?>>? event) {
+    final recMess = event![0].payload as MqttPublishMessage;
+    final String pt =
+        MqttPublishPayload.bytesToStringAsString(recMess.payload.message);
+    setState(() {
+      widget.mqttServices.temp = pt;
+    });
+    DataStorage.data = jsonDecode(widget.mqttServices.temp);
+    print(DataStorage.data['V']);
   }
 
   Future<void> _getLocationPermission() async {
@@ -155,7 +181,8 @@ class _HeaderCardState extends State<HeaderCard> {
                       ),
                       const SizedBox(height: 3),
                       Text(
-                        '20°C',
+                        '${DataStorage.data['V']}',
+                        overflow: TextOverflow.ellipsis,
                         style: bold16White(),
                       )
                     ],
@@ -241,6 +268,7 @@ class _cardDeviceBoardState extends State<cardDeviceBoard> {
                         height: 10,
                       ),
                       Text('${widget.deviceType}',
+                          overflow: TextOverflow.ellipsis,
                           style: widget.varType
                               ? bold16Highlight()
                               : bold16Prim()),
@@ -267,7 +295,7 @@ class _cardDeviceBoardState extends State<cardDeviceBoard> {
                         onToggle: (value) {
                           setState(() {
                             widget.varType = value;
-                            print(value);
+                            print(widget.varType);
                           });
                         },
                       )
@@ -282,11 +310,12 @@ class _cardDeviceBoardState extends State<cardDeviceBoard> {
 }
 
 class allCard extends StatefulWidget {
-  allCard({
-    super.key,
-    required this.width,
-    required this.varType,
-  });
+  MqttService2 mqttServices;
+  allCard(
+      {super.key,
+      required this.width,
+      required this.varType,
+      required this.mqttServices});
   bool varType;
 
   final double width;
@@ -297,7 +326,6 @@ class allCard extends StatefulWidget {
 
 class _allCardState extends State<allCard> {
   late List feature = [];
-  late List room = [];
   bool isLoading = false;
   List<Room> rooms = [];
   Room? _selectedItem;
@@ -305,15 +333,19 @@ class _allCardState extends State<allCard> {
 
   @override
   void initState() {
-    fetchApiFeature();
-    _fetchDataClass();
-    fetchApiRoom().then((items) {
-      setState(() {
-        rooms = items;
-        _selectedItem = rooms[0];
-      });
-    });
     super.initState();
+    try {
+      fetchApiFeature();
+      _fetchDataClass();
+      fetchApiRoom().then((items) {
+        setState(() {
+          rooms = items;
+          _selectedItem = rooms[0];
+        });
+      });
+    } catch (e) {
+      print(e);
+    }
   }
 
   void fetchApiFeature() async {
@@ -374,39 +406,57 @@ class _allCardState extends State<allCard> {
             const SizedBox(
               height: 15,
             ),
-            Wrap(
-                children: [
-                  for (var data in feature)
-                    InkWell(
-                        onTap: () {
-                          setState(() {
-                            widget.varType = !widget.varType;
-                          });
-                        },
-                        child: cardDeviceBoard(
-                          deviceType: "${data['name_feature']}",
-                          deviceValue: _selectedItem?.name == 'TEDK'
-                              ? "${_classData[0]['available_devices']}"
-                              : _selectedItem?.name == 'TAV1'
-                                  ? "${_classData[1]['available_devices']}"
-                                  : _selectedItem?.name == 'TAV2'
-                                      ? "${_classData[2]['available_devices']}"
-                                      : _selectedItem?.name == 'TFLM'
-                                          ? "${_classData[3]['available_devices']}"
-                                          : 'Device unknown',
-                          width: widget.width,
-                          varType: widget.varType,
-                          iconData: data['name_feature'] == 'LAMP'
-                              ? Ionicons.bulb
-                              : data['name_feature'] == 'AC'
-                                  ? Ionicons.snow
-                                  : data['name_feature'] == 'SENSOR SUHU'
-                                      ? Ionicons.thermometer
-                                      : data['name_feature'] == 'KWH MONITORING'
-                                          ? Ionicons.logo_electron
-                                          : Icons.control_camera_sharp,
-                        )),
-                ]),
+            Wrap(spacing: 10.0, runSpacing: 10.0, children: [
+              for (var data in feature)
+                InkWell(
+                  onTap: () {
+                    setState(() {
+                      data['name_feature'] == 'LAMP'
+                          ? lamp = !lamp
+                          : data['name_feature'] == 'AC'
+                              ? ac = !ac
+                              : data['name_feature'] == 'SENSOR SUHU'
+                                  ? switchAc = !switchAc
+                                  : data['name_feature'] == 'KWH MONITORING'
+                                      ? curtain = !curtain
+                                      : switchBoard = !switchBoard;
+                    });
+                    widget.mqttServices
+                        .sendMessage('Cikunir/lt2/stts2/sharp', 'Started');
+                  },
+                  child: cardDeviceBoard(
+                    deviceType: "${data['name_feature']}",
+                    deviceValue: _selectedItem?.name == 'TEDK'
+                        ? "${_classData[0]['available_devices']}"
+                        : _selectedItem?.name == 'TAV1'
+                            ? "${_classData[1]['available_devices']}"
+                            : _selectedItem?.name == 'TAV2'
+                                ? "${_classData[2]['available_devices']}"
+                                : _selectedItem?.name == 'TFLM'
+                                    ? "${_classData[3]['available_devices']}"
+                                    : 'Device unknown',
+                    width: widget.width,
+                    varType: data['name_feature'] == 'LAMP'
+                        ? lamp
+                        : data['name_feature'] == 'AC'
+                            ? ac
+                            : data['name_feature'] == 'SENSOR SUHU'
+                                ? switchAc
+                                : data['name_feature'] == 'KWH MONITORING'
+                                    ? curtain
+                                    : switchBoard,
+                    iconData: data['name_feature'] == 'LAMP'
+                        ? Ionicons.bulb
+                        : data['name_feature'] == 'AC'
+                            ? Ionicons.snow
+                            : data['name_feature'] == 'SENSOR SUHU'
+                                ? Ionicons.thermometer
+                                : data['name_feature'] == 'KWH MONITORING'
+                                    ? Ionicons.logo_electron
+                                    : Icons.control_camera_sharp,
+                  ),
+                ),
+            ]),
           ],
         ),
       ),

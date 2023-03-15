@@ -1,13 +1,13 @@
 class Room {
-  int? uuid;
+  String? uuid;
   String? name;
-  String? device;
+  int? device;
 
-  Room({this.uuid, this.name, this.device});
+  Room({required this.uuid, this.name, this.device});
 
   factory Room.fromJson(Map<String, dynamic> json) {
     return Room(
-      // uuid: json['uuid'],
+      uuid: json['uuid'],
       name: json['name_room'],
       // device: json['available_devices']
     );

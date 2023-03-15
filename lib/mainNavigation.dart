@@ -5,8 +5,10 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:flutter_smartclass/global/color.dart';
 import 'package:flutter_smartclass/model/feature.dart';
+import 'package:flutter_smartclass/model/room.dart';
 import 'package:flutter_smartclass/page/accessibility/mainAccess.dart';
 import 'package:flutter_smartclass/page/home/mainHome.dart';
+import 'package:flutter_smartclass/services/user_services.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:ionicons/ionicons.dart';
 import 'package:http/http.dart' as http;
@@ -27,13 +29,19 @@ class _NavigationPageState extends State<NavigationPage> {
   int currentIndex = 0;
   late List _classData = [];
   List<Widget>? screens;
-  
+  late List<Room> rooms = [];
+  Room? _selectedItem;
+  String? select;
 
   @override
   void initState() {
-    _fetchDataFeatures();
-    _fetchDataClass();
     super.initState();
+    try {
+      _fetchDataFeatures();
+      _fetchDataClass();
+    } catch (e) {
+      print(e);
+    }
   }
 
   Future<void> _fetchDataClass() async {
@@ -42,7 +50,11 @@ class _NavigationPageState extends State<NavigationPage> {
         Uri.parse('http://smartlearning.solusi-rnd.tech/api/data-rooms'),
       );
       setState(() {
+        List<dynamic> jsonRooms = jsonDecode(response.body);
         _classData = jsonDecode(response.body);
+        setState(() {
+          rooms = jsonRooms.map((r) => Room.fromJson(r)).toList();
+        });
         // Initialize screens after _classData has been fetched
         screens = [
           if (_classData.isNotEmpty) HomePage(uuid: _classData[0]['uuid']),
@@ -75,13 +87,13 @@ class _NavigationPageState extends State<NavigationPage> {
       _formKey.currentState!.save();
       try {
         print(
-            "name_feature: $selectedFeature, id_room: ${_classData[0]['uuid']}, name_device: $nameDevice, topic: $topic, active: $active, inactive: $inactive");
+            "name_feature: $selectedFeature, id_room: $select, name_device: $nameDevice, topic: $topic, active: $active, inactive: $inactive");
         final response = await http.post(
-            Uri.parse("http://smartlearning.solusi-rnd.tech/api/store-devices"),
+            Uri.parse("http://smartlearning.solusi-rnd.tech/api/store-devices/"),
             headers: {'Content-Type': 'application/json'},
             body: jsonEncode({
               "name_feature": selectedFeature,
-              "id_room": _classData[0]['uuid'],
+              "id_room": select,
               "name_device": nameDevice,
               "topic": topic,
               "active": active,
@@ -89,14 +101,18 @@ class _NavigationPageState extends State<NavigationPage> {
             }));
         var results = jsonDecode(response.body);
         if (results["success"] == true) {
-          Navigator.push(
-            context,
-            MaterialPageRoute(
-              builder: (context) => NavigationPage(
-                uuid: '${_classData[0]['uuid']}',
+          try {
+            Navigator.pushReplacement(
+              context,
+              MaterialPageRoute(
+                builder: (context) => NavigationPage(
+                  uuid: '${_selectedItem?.uuid}',
+                ),
               ),
-            ),
-          );
+            );
+          } catch (e) {
+            print(e);
+          }
           print("berhasil insert data");
         } else {
           print("GAGAL INSERT DATABASE: ${response.statusCode}");
@@ -164,6 +180,32 @@ class _NavigationPageState extends State<NavigationPage> {
                       setState(() {
                         selectedFeature = newValue;
                       });
+                    },
+                  ),
+                  SizedBox(
+                    height: 16,
+                  ),
+                  DropdownButtonFormField<String>(
+                    decoration: selectDecoration,
+                    value: select,
+                    items: rooms
+                        .map<DropdownMenuItem<String>>((Room room) {
+                      return DropdownMenuItem<String>(
+                        value: room.uuid,
+                        child: Text(
+                          '${room.name}',
+                          style: TextStyle(
+                            fontSize: 14,
+                            color: Colors.black,
+                          ),
+                        ),
+                      );
+                    }).toList(),
+                    onChanged: (String? newValue) {
+                      setState(() {
+                        select = newValue;
+                      });
+                        print(select);
                     },
                   ),
                   SizedBox(
@@ -273,7 +315,11 @@ class _NavigationPageState extends State<NavigationPage> {
                       primary: Colors.blue.shade800,
                     ),
                     onPressed: () {
-                      _submit();
+                      try {
+                        _submit();
+                      } catch (e) {
+                        print(e);
+                      }
                     },
                     child: Text(
                       'Save Device',
@@ -319,8 +365,13 @@ class _NavigationPageState extends State<NavigationPage> {
     return Scaffold(
       floatingActionButton: floatingButton(
         addDevice: () {
-          addDevices(context, selectDecoration);
-        }, uuid: '${_classData[0]['uuid']}',
+          try {
+            addDevices(context, selectDecoration);
+          } catch (e) {
+            print(e);
+          }
+        },
+        uuid: '${_classData[0]['uuid']}',
       ),
       floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,
       body: screens?[currentIndex],
@@ -348,7 +399,8 @@ class floatingButton extends StatelessWidget {
   final String uuid;
   const floatingButton({
     Key? key,
-    required this.addDevice, required this.uuid,
+    required this.addDevice,
+    required this.uuid,
   }) : super(key: key);
 
   @override
@@ -362,10 +414,6 @@ class floatingButton extends StatelessWidget {
         onPressed: () {
           // print('${uuid}');
           addDevice();
-          // Navigator.push(
-          // context,
-          // MaterialPageRoute(builder: (context) => AddDevicePage()),
-          // );
         },
         child: const Icon(
           Icons.add,

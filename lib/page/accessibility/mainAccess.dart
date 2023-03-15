@@ -3,8 +3,6 @@
 import 'dart:convert';
 
 import 'package:flutter/material.dart';
-import 'package:flutter/src/widgets/container.dart';
-import 'package:flutter/src/widgets/framework.dart';
 import 'package:flutter_smartclass/global/color.dart';
 import 'package:flutter_smartclass/global/textstyle.dart';
 import 'package:flutter_smartclass/page/accessibility/room/mainRoom.dart';
@@ -55,14 +53,30 @@ class _AccessPageState extends State<AccessPage> {
                 RoomWidget(
                     width: width,
                     onTap: () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(builder: (context) => RoomPage(roomName: '${data['name_room']}',)),
-                      );
+                      if (data['available_devices'] == 0) {
+                        print('not device connected');
+                      } else {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                              builder: (context) => RoomPage(
+                                    roomName: '${data['name_room']}',
+                                  )),
+                        );
+                      }
                     },
-                    status: data['available_devices'] > 0 ? 'Connected' : 'Not Connected',
+                    status: data['available_devices'] > 0
+                        ? 'Connected'
+                        : 'Not Connected',
                     roomName: '${data['name_room']}',
-                    totalDevice: '${data['available_devices']}')
+                    totalDevice: '${data['available_devices']}',
+                    icon: data['name_room'].contains('TEDK')
+                        ? Icons.electric_bolt
+                        : data['name_room'].contains('TAV')
+                            ? Icons.movie_sharp
+                            : data['name_room'].contains('TFLM')
+                                ? Icons.precision_manufacturing
+                                : Icons.device_unknown)
             ],
           ),
         ),
@@ -76,6 +90,7 @@ class RoomWidget extends StatelessWidget {
   final String status;
   final String roomName;
   final String totalDevice;
+  final IconData icon;
   const RoomWidget({
     Key? key,
     required this.width,
@@ -83,6 +98,7 @@ class RoomWidget extends StatelessWidget {
     required this.status,
     required this.roomName,
     required this.totalDevice,
+    required this.icon,
   }) : super(key: key);
 
   final double width;
@@ -104,12 +120,13 @@ class RoomWidget extends StatelessWidget {
                     height: width * 0.2,
                     width: width * 0.2,
                     child: Container(
-                        color: primary,
-                        child: const Icon(
-                          Ionicons.bulb,
-                          size: 50,
-                          color: Colors.white,
-                        )),
+                      color: primary,
+                      child: Icon(
+                        icon,
+                        size: 36.0,
+                        color: Colors.white,
+                      ),
+                    ),
                   ),
                 ),
                 const SizedBox(

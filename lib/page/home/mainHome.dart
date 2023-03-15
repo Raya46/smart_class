@@ -6,12 +6,15 @@ import 'package:flutter/src/widgets/framework.dart';
 import 'package:flutter_smartclass/global/color.dart';
 import 'package:flutter_smartclass/global/textstyle.dart';
 import 'package:flutter_smartclass/global/var/bool.dart';
+import 'package:flutter_smartclass/services/mqtt_services.dart';
 import 'package:flutter_smartclass/widget/homepage/card.dart';
 import 'package:flutter_smartclass/widget/widgetAppbar.dart';
 import 'package:flutter_switch/flutter_switch.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/intl.dart';
 import 'package:ionicons/ionicons.dart';
+import 'package:mqtt_client/mqtt_client.dart';
+import 'package:mqtt_client/mqtt_server_client.dart';
 
 class HomePage extends StatefulWidget {
   var temp;
@@ -25,6 +28,8 @@ class HomePage extends StatefulWidget {
 }
 
 class _HomePageState extends State<HomePage> {
+  final mqttService = MqttService2();
+
   @override
   Widget build(BuildContext context) {
     final width = MediaQuery.of(context).size.width;
@@ -45,10 +50,15 @@ class _HomePageState extends State<HomePage> {
                     width: width,
                     icon: '${widget.icon}',
                     temp: '${widget.temp}',
-                    weather: '${widget.weather}',
+                    weather: '${widget.weather}', mqttServices: mqttService,
                   ),
                 ),
-                Expanded(flex: 7, child: allCard(width: width, varType: false,)),
+                Expanded(
+                    flex: 7,
+                    child: allCard(
+                      width: width,
+                      varType: false, mqttServices: mqttService,
+                    )),
               ]),
             ),
           ),

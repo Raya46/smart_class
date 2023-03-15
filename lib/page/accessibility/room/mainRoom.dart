@@ -19,6 +19,7 @@ class RoomPage extends StatefulWidget {
 }
 
 int selectedCardIndex = -1;
+String? selectedCardText;
 
 class _RoomPageState extends State<RoomPage> {
   bool switchValue = false;
@@ -59,19 +60,23 @@ class _RoomPageState extends State<RoomPage> {
   @override
   void initState() {
     super.initState();
-    fetchApi();
-    setState(() {
-      selectedCardIndex = 0;
-    });
+    try {
+      fetchApi();
+      setState(() {
+        selectedCardIndex = 0;
+      });
+    } catch (e) {
+      print(e);
+    }
   }
 
   move() {
-    if (selectedCardIndex == 0) {
+    if (cardList[0]['name_feature'] == 'AC') {
       Navigator.push(
         context,
         MaterialPageRoute(builder: (context) => AcPage()),
       );
-    } else if (selectedCardIndex == 4) {
+    } else if (cardList[0]['name_feature'] == 'REMOTE') {
       Navigator.push(
         context,
         MaterialPageRoute(builder: (context) => AudioPage()),
@@ -137,16 +142,25 @@ class _RoomPageState extends State<RoomPage> {
                       title: data['name_feature'],
                       onTap: () {
                         setState(() {
+                          // selectedCardIndex = data['id'];
                           selectedCardIndex = data['id'];
+                          selectedCardText = data['name_feature'];
                           print(selectedCardIndex);
-                          print(data['name_feature']);
+                          print(selectedCardText);
                         });
                       },
-                      icon: data['name_feature'] == 'LAMP' ? Icons.lightbulb : Icons.device_unknown,
+                      icon: data['name_feature'] == 'LAMP'
+                          ? Ionicons.bulb
+                          : data['name_feature'] == 'AC'
+                              ? Ionicons.snow
+                              : data['name_feature'] == 'SENSOR SUHU'
+                                  ? Ionicons.thermometer
+                                  : data['name_feature'] == 'KWH MONITORING'
+                                      ? Ionicons.logo_electron
+                                      : Icons.control_camera_sharp,
                       color: isSelected ? primary : secondary,
                       iconColor: isSelected ? highlight : primary,
-                      isSelected: data['id'] == selectedCardIndex ||
-                          data['name_feature'] == selectedCardIndex,
+                      isSelected: data['id'] == selectedCardIndex,
                     )
                 ],
               ),
@@ -162,34 +176,94 @@ class _RoomPageState extends State<RoomPage> {
                   child: Container(
                     child: ListView(
                       children: [
-                        for (var data in cardList)
+                        // for (var data in cardList)
+                        if (selectedCardText == 'LAMP')
                           CardDevice(
-                            icon: Icons.device_unknown,
-                            status: '',
-                            nameDevice: '${data['name_feature']}',
-                            onTap: () {
-                              if (data['name_feature'] == 'AC') {
-                                Navigator.push(
-                                  context,
-                                  MaterialPageRoute(
-                                      builder: (context) => AcPage()),
-                                );
-                              } else if (data['name_feature'] == 'REMOTE') {
-                                Navigator.push(
-                                  context,
-                                  MaterialPageRoute(
-                                      builder: (context) => AudioPage()),
-                                );
-                              }
-                            },
-                            leadingButton: IconButton(
-                              onPressed: () {},
-                              icon: const Icon(
-                                Icons.add,
-                                size: 24.0,
-                              ),
+                            icon: Ionicons.bulb,
+                            leadingButton: Switch(
+                              value: lampValue,
+                              onChanged: (value) {
+                                setState(() {
+                                  lampValue = value;
+                                });
+                              },
                             ),
-                          )
+                            nameDevice: '${cardList[0]['name_feature']}',
+                            onTap: () {},
+                            status: cardList[0]['name_feature'] == ''
+                                ? 'Not Connected'
+                                : 'Connected',
+                          ),
+                        if (selectedCardText == 'KWH MONITORING')
+                          CardDevice(
+                            icon: Ionicons.logo_electron,
+                            leadingButton: Switch(
+                              value: switchValue,
+                              onChanged: (value) {
+                                setState(() {
+                                  switchValue = value;
+                                });
+                              },
+                            ),
+                            nameDevice: '${cardList[1]['name_feature']}',
+                            onTap: () {},
+                            status: cardList[1]['name_feature'] == ''
+                                ? 'Not Connected'
+                                : 'Connected',
+                          ),
+                        if (selectedCardText == 'SENSOR SUHU')
+                          CardDevice(
+                            icon: Ionicons.thermometer,
+                            leadingButton: Switch(
+                              value: switchValue,
+                              onChanged: (value) {
+                                setState(() {
+                                  switchValue = value;
+                                });
+                              },
+                            ),
+                            nameDevice: '${cardList[2]['name_feature']}',
+                            onTap: () {},
+                            status: cardList[2]['name_feature'] == ''
+                                ? 'Not Connected'
+                                : 'Connected',
+                          ),
+                        if (selectedCardText == 'AC')
+                          CardDevice(
+                            icon: Ionicons.snow,
+                            leadingButton: const Icon(
+                            Ionicons.chevron_forward,
+                            size: 24.0,
+                            ),
+                            nameDevice: '${cardList[3]['name_feature']}',
+                            onTap: () {
+                              Navigator.push(
+                              context,
+                              MaterialPageRoute(builder: (context) => AcPage()),
+                              );
+                            },
+                            status: cardList[3]['name_feature'] == ''
+                                ? 'Not Connected'
+                                : 'Connected',
+                          ),
+                        if (selectedCardText == 'REMOTE')
+                          CardDevice(
+                            icon: Icons.control_camera,
+                            leadingButton: const Icon(
+                            Ionicons.chevron_forward,
+                            size: 24.0,
+                            ),
+                            nameDevice: '${cardList[4]['name_feature']}',
+                            onTap: () {
+                              Navigator.push(
+                              context,
+                              MaterialPageRoute(builder: (context) => AudioPage()),
+                              );
+                            },
+                            status: cardList[4]['name_feature'] == ''
+                                ? 'Not Connected'
+                                : 'Connected',
+                          ), 
                       ],
                     ),
                   ))),

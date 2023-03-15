@@ -1,5 +1,4 @@
 import 'dart:convert';
-
 import 'package:flutter_smartclass/global/constant.dart';
 import 'package:flutter_smartclass/model/api_response.dart';
 import 'package:flutter_smartclass/model/room.dart';
