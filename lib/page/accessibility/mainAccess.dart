@@ -61,6 +61,7 @@ class _AccessPageState extends State<AccessPage> {
                           MaterialPageRoute(
                               builder: (context) => RoomPage(
                                     roomName: '${data['name_room']}',
+                                    uuid: '${data['uuid']}',
                                   )),
                         );
                       }

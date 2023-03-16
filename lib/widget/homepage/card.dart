@@ -6,6 +6,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_smartclass/global/color.dart';
 import 'package:flutter_smartclass/global/textstyle.dart';
 import 'package:flutter_smartclass/global/var/bool.dart';
+import 'package:flutter_smartclass/model/feature.dart';
 import 'package:flutter_smartclass/model/room.dart';
 import 'package:flutter_smartclass/services/data_mqtt_services.dart';
 import 'package:flutter_smartclass/services/mqtt_services.dart';
@@ -181,7 +182,7 @@ class _HeaderCardState extends State<HeaderCard> {
                       ),
                       const SizedBox(height: 3),
                       Text(
-                        '${DataStorage.data['V']}',
+                        '${DataStorage.data['C']}',
                         overflow: TextOverflow.ellipsis,
                         style: bold16White(),
                       )
@@ -330,12 +331,19 @@ class _allCardState extends State<allCard> {
   List<Room> rooms = [];
   Room? _selectedItem;
   late List _classData = [];
+  late List detailDevices = [];
+  String? selectedFeature;
+  final _formKey = GlobalKey<FormState>();
+  late List<Feature> features;
+  String? select;
+  String? selectClass;
+  bool isDeleting = false;
 
   @override
   void initState() {
     super.initState();
     try {
-      fetchApiFeature();
+      fetchDataFeatures();
       _fetchDataClass();
       fetchApiRoom().then((items) {
         setState(() {
@@ -348,14 +356,135 @@ class _allCardState extends State<allCard> {
     }
   }
 
-  void fetchApiFeature() async {
-    String apiUrl = 'http://smartlearning.solusi-rnd.tech/api/data-features';
-    http.Response response = await http.get(Uri.parse(apiUrl));
-    var result = jsonDecode(response.body);
+   Future<void> deleteData(String uuid) async {
     setState(() {
-      isLoading = true;
-      feature = jsonDecode(response.body);
+      isDeleting = true;
     });
+
+    final response = await http.delete(Uri.parse('http://smartlearning.solusi-rnd.tech/api/delete-devices/$uuid'));
+    if (response.statusCode == 200) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Item deleted successfully')),
+      );
+    } else {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Failed to delete item')),
+      );
+    }
+
+    setState(() {
+      isDeleting = false;
+    });
+  }
+
+  Future<dynamic> deleteDevice(BuildContext context) {
+    return showModalBottomSheet(
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.only(
+          topLeft: Radius.circular(20),
+          topRight: Radius.circular(20),
+        ),
+      ),
+      enableDrag: true,
+      isScrollControlled: true, // tambahkan ini agar modal dapat di-scroll
+      context: context,
+      builder: (BuildContext context) {
+        return SingleChildScrollView(
+          // tambahkan SingleChildScrollView
+          child: Form(
+            key: _formKey,
+            child: Padding(
+              padding: EdgeInsets.only(
+                bottom: MediaQuery.of(context)
+                    .viewInsets
+                    .bottom, // tambahkan ini agar padding bawah disesuaikan dengan keyboard
+                left: 22.0,
+                right: 22.0,
+                top: 22.0,
+              ),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Text(
+                    'Delete Device',
+                    style: GoogleFonts.inter(
+                      fontWeight: FontWeight.w600,
+                      fontSize: 16,
+                    ),
+                  ),
+                  SizedBox(height: 30.0),
+                   DropdownButtonFormField<String>(
+                    value: select,
+                    items: rooms.map<DropdownMenuItem<String>>((Room room) {
+                      return DropdownMenuItem<String>(
+                        value: room.uuid,
+                        child: Text(
+                          '${room.name}',
+                          style: TextStyle(
+                            fontSize: 14,
+                            color: Colors.black,
+                          ),
+                        ),
+                      );
+                    }).toList(),
+                    onChanged: (String? newValue) {
+                      setState(() {
+                        select = newValue;
+                      });
+                      print(select);
+                    },
+                  ),
+                  SizedBox(
+                    height: 16,
+                  ),
+                  // ignore: prefer_const_constructors
+                  SizedBox(height: 16.0),
+                  ElevatedButton(
+                    style: ElevatedButton.styleFrom(
+                      primary: Colors.blue.shade800,
+                    ),
+                    onPressed: () {
+                      try {
+                        // _submit();
+                        deleteData('$select');
+                        // print(select);
+                      } catch (e) {
+                        print(e);
+                      }
+                    },
+                    child: Text(
+                      'Delete Device',
+                      style: GoogleFonts.inter(
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  ),
+                  // ignore: prefer_const_constructors
+                  SizedBox(height: 16.0),
+                ],
+              ),
+            ),
+          ),
+        );
+      },
+    );
+  }
+  Future<void> fetchDataFeatures() async {
+    try {
+      final response = await http.get(
+        Uri.parse('http://smartlearning.solusi-rnd.tech/api/data-features'),
+      );
+      setState(() {
+        List<dynamic> jsonFeatures = jsonDecode(response.body);
+        isLoading = true;
+        feature = jsonDecode(response.body);
+        setState(() {
+          features = jsonFeatures.map((f) => Feature.fromJson(f)).toList();
+        });
+      });
+    } catch (e) {
+      print("Exception: $e");
+    }
   }
 
   Future<void> _fetchDataClass() async {
@@ -365,6 +494,19 @@ class _allCardState extends State<allCard> {
       );
       setState(() {
         _classData = jsonDecode(response.body);
+      });
+    } catch (e) {
+      print("Exception: $e");
+    }
+  }
+  Future<void> fetchDetail(String uuid) async {
+    try {
+      final response = await http.get(
+        Uri.parse('http://smartlearning.solusi-rnd.tech/api/data-devices-power/$uuid'),
+      );
+      setState(() {
+        detailDevices = jsonDecode(response.body);
+        print(detailDevices);
       });
     } catch (e) {
       print("Exception: $e");
@@ -386,29 +528,39 @@ class _allCardState extends State<allCard> {
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 Text("Devices", style: bold20Prim()),
-                DropdownButton<Room>(
-                  value: _selectedItem,
-                  items: rooms.map((item) {
-                    return DropdownMenuItem<Room>(
-                      value: item,
-                      child: Text('${item.name}'),
-                    );
-                  }).toList(),
-                  onChanged: (newValue) {
-                    setState(() {
-                      _selectedItem = newValue;
-                      print(_selectedItem?.name);
-                    });
-                  },
-                ),
+                DropdownButton(
+                    value: selectClass,
+                    items: rooms.map<DropdownMenuItem<String>>((Room room) {
+                      return DropdownMenuItem<String>(
+                        value: room.uuid,
+                        child: Text(
+                          '${room.name}',
+                          style: TextStyle(
+                            fontSize: 14,
+                            color: Colors.black,
+                          ),
+                        ),
+                      );
+                    }).toList(),
+                    onChanged: (String? newValue) {
+                      setState(() {
+                        selectClass = newValue;
+                      });
+                      fetchDetail('$selectClass');
+                      print(selectClass);
+                    },
+                  ),
               ],
             ),
             const SizedBox(
               height: 15,
             ),
             Wrap(spacing: 10.0, runSpacing: 10.0, children: [
-              for (var data in feature)
+              for (var data in detailDevices)
                 InkWell(
+                  onDoubleTap: () {
+                    deleteDevice(context);
+                  },
                   onTap: () {
                     setState(() {
                       data['name_feature'] == 'LAMP'
@@ -425,15 +577,15 @@ class _allCardState extends State<allCard> {
                         .sendMessage('Cikunir/lt2/stts2/sharp', 'Started');
                   },
                   child: cardDeviceBoard(
-                    deviceType: "${data['name_feature']}",
+                    deviceType: "${data['name_device']}",
                     deviceValue: _selectedItem?.name == 'TEDK'
-                        ? "${_classData[0]['available_devices']}"
+                        ? "${detailDevices.length}"
                         : _selectedItem?.name == 'TAV1'
-                            ? "${_classData[1]['available_devices']}"
+                            ? "${detailDevices.length}"
                             : _selectedItem?.name == 'TAV2'
-                                ? "${_classData[2]['available_devices']}"
+                                ? "${detailDevices.length}"
                                 : _selectedItem?.name == 'TFLM'
-                                    ? "${_classData[3]['available_devices']}"
+                                    ? "${detailDevices.length}"
                                     : 'Device unknown',
                     width: widget.width,
                     varType: data['name_feature'] == 'LAMP'

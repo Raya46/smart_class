@@ -89,7 +89,8 @@ class _NavigationPageState extends State<NavigationPage> {
         print(
             "name_feature: $selectedFeature, id_room: $select, name_device: $nameDevice, topic: $topic, active: $active, inactive: $inactive");
         final response = await http.post(
-            Uri.parse("http://smartlearning.solusi-rnd.tech/api/store-devices/"),
+            Uri.parse(
+                "http://smartlearning.solusi-rnd.tech/api/store-devices/"),
             headers: {'Content-Type': 'application/json'},
             body: jsonEncode({
               "name_feature": selectedFeature,
@@ -102,14 +103,12 @@ class _NavigationPageState extends State<NavigationPage> {
         var results = jsonDecode(response.body);
         if (results["success"] == true) {
           try {
-            Navigator.pushReplacement(
-              context,
-              MaterialPageRoute(
-                builder: (context) => NavigationPage(
-                  uuid: '${_selectedItem?.uuid}',
-                ),
-              ),
-            );
+            Navigator.of(context).pushAndRemoveUntil(
+                MaterialPageRoute(
+                    builder: (context) => NavigationPage(
+                          uuid: '${_selectedItem?.uuid}',
+                        )),
+                (route) => false);
           } catch (e) {
             print(e);
           }
@@ -188,8 +187,7 @@ class _NavigationPageState extends State<NavigationPage> {
                   DropdownButtonFormField<String>(
                     decoration: selectDecoration,
                     value: select,
-                    items: rooms
-                        .map<DropdownMenuItem<String>>((Room room) {
+                    items: rooms.map<DropdownMenuItem<String>>((Room room) {
                       return DropdownMenuItem<String>(
                         value: room.uuid,
                         child: Text(
@@ -205,7 +203,7 @@ class _NavigationPageState extends State<NavigationPage> {
                       setState(() {
                         select = newValue;
                       });
-                        print(select);
+                      print(select);
                     },
                   ),
                   SizedBox(
