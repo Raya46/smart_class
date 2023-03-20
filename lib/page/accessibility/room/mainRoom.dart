@@ -5,6 +5,7 @@ import 'package:flutter_smartclass/global/color.dart';
 import 'package:flutter_smartclass/page/accessibility/room/audioPage.dart';
 import 'package:flutter_smartclass/page/accessibility/room/mainAc.dart';
 import 'package:flutter_smartclass/widget/roompage/widgetroom.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'package:ionicons/ionicons.dart';
 import 'package:http/http.dart' as http;
 
@@ -25,36 +26,87 @@ class _RoomPageState extends State<RoomPage> {
   bool lampValue = false;
   bool curtainsValue = false;
   bool isSelected = false;
+  bool isSuccess = false;
   late List deviceList = [];
+  late List cardList = [];
+  late List updateList = [];
+  bool isDeleting = false;
+  final _formKey = GlobalKey<FormState>();
+  String? vnameDevice, vtopic, vactive, vinactive;
+  int? vid;
+  String? uuidDelete;
 
-  late List cardList = [
-    // CircleList(title: 'AC', onTap: () {}, icon: Ionicons.snow),
-    // CircleList(title: 'Lamp', onTap: () {}, icon: Ionicons.bulb),
-    // CircleList(title: 'Curtains', onTap: () {}, icon: Icons.curtains),
-    // CircleList(title: 'Switch', onTap: () {}, icon: Icons.switch_right),
-    // CircleList(title: 'Audio', onTap: () {}, icon: Icons.audiotrack),
-  ];
+  Future<void> deleteData(String uuid) async {
+    setState(() {
+      isDeleting = true;
+    });
 
-  List<CardDevice> cardDeviceList = [
-    CardDevice(
-      icon: Icons.device_unknown,
-      status: 'unknown',
-      nameDevice: 'unknown',
-      onTap: () {},
-      leadingButton: Icon(
-        Ionicons.chevron_forward,
-        size: 24.0,
-      ),
-    ),
-  ];
+    final response = await http.delete(Uri.parse(
+        'http://smartlearning.solusi-rnd.tech/api/delete-devices/$uuid'));
+    if (response.statusCode == 200) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Item deleted successfully')),
+      );
+    } else {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Failed to delete item')),
+      );
+    }
+
+    setState(() {
+      isDeleting = false;
+    });
+  }
 
   void fetchApi() async {
     String apiUrl = 'http://smartlearning.solusi-rnd.tech/api/data-features';
     http.Response response = await http.get(Uri.parse(apiUrl));
     var result = jsonDecode(response.body);
-    setState(() {
-      cardList = jsonDecode(response.body);
-    });
+    if (response.statusCode == 200) {
+      setState(() {
+        cardList = jsonDecode(response.body);
+      });
+    }
+  }
+
+  fetchUpdateDevice(int id) async {
+    if (_formKey.currentState!.validate()) {
+      _formKey.currentState!.save();
+      String url =
+          'http://smartlearning.solusi-rnd.tech/api/update-devices/$id';
+      http.Response response = await http.patch(
+        Uri.parse(url),
+        headers: {'Content-Type': 'application/json'},
+        body: jsonEncode({
+          "name_feature": updateList[0]['name_feature'],
+          "id_room": widget.uuid,
+          "name_device": vnameDevice,
+          "topic": vtopic,
+          "active": vactive,
+          "inactive": vinactive
+        }),
+      );
+      var results = jsonDecode(response.body);
+      if (results["success"] == true) {
+        print('sukses');
+      } else {
+        print('gagal');
+      }
+    }
+  }
+
+  Future<dynamic> editDevice(String uuidDevice) async {
+    try {
+      final response = await http.get(
+        Uri.parse(
+            'http://smartlearning.solusi-rnd.tech/api/detail-devices/$uuidDevice'),
+      );
+      setState(() {
+        updateList = jsonDecode(response.body);
+      });
+    } catch (e) {
+      print(e);
+    }
   }
 
   void fetchDevice(String uuid, String? deviceType) async {
@@ -62,9 +114,306 @@ class _RoomPageState extends State<RoomPage> {
         'http://smartlearning.solusi-rnd.tech/api/data-devices-$deviceType/${widget.uuid}';
     http.Response response = await http.get(Uri.parse(urlLampu));
     var result = jsonDecode(response.body);
-    setState(() {
-      deviceList = jsonDecode(response.body);
-    });
+    if (response.statusCode == 200) {
+      setState(() {
+        deviceList = jsonDecode(response.body);
+        isSuccess = true;
+      });
+    } else {
+      setState(() {
+        isSuccess = false;
+      });
+    }
+    print('ini ${response.statusCode}');
+  }
+
+  Future<dynamic> modalBottomSheet(BuildContext context, String uuid, int id,
+      String name, String topic, String active, String inactive) {
+    return showModalBottomSheet(
+        backgroundColor: Colors.white,
+        shape: const RoundedRectangleBorder(
+          // <-- SEE HERE
+          borderRadius: BorderRadius.vertical(
+            top: Radius.circular(25.0),
+          ),
+        ),
+        // backgroundColor: white,
+        context: context,
+        builder: (context) {
+          final screenHeight = MediaQuery.of(context).size.height;
+          final screenWidth = MediaQuery.of(context).size.width;
+          // ignore: avoid_unnecessary_containers
+          return SizedBox(
+            height: screenHeight / 4.5,
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisAlignment: MainAxisAlignment.start,
+              // mainAxisSize: MainAxisSize.,
+              children: [
+                Divider(
+                  indent: 150,
+                  endIndent: 150,
+                  height: 20,
+                  thickness: 4,
+                  color: Colors.black,
+                ),
+                Container(
+                  margin: const EdgeInsets.all(18.0),
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      SizedBox(
+                        height: 60,
+                        child: ElevatedButton(
+                            style: ElevatedButton.styleFrom(
+                                primary: Colors.transparent,
+                                onPrimary: Colors.black,
+                                elevation: 0),
+                            onPressed: () async {
+                              await editDevice(uuid);
+                              editDevices(context, id, name, uuid, topic,
+                                      active, inactive)
+                                  .then((_) {
+                                Navigator.pop(context);
+                              });
+                              print(id);
+                            },
+                            child: Row(
+                              children: [
+                                Container(
+                                  margin: const EdgeInsets.only(right: 10),
+                                  child: Icon(
+                                    Icons.edit,
+                                    color: Colors.blue,
+                                  ),
+                                ),
+                                Text("Edit Devices",
+                                    style: GoogleFonts.inter(
+                                        fontSize: 16,
+                                        fontWeight: FontWeight.bold,
+                                        color: Colors.black))
+                              ],
+                            )),
+                      ),
+                      SizedBox(
+                        height: 60,
+                        child: ElevatedButton(
+                            style: ElevatedButton.styleFrom(
+                                primary: Colors.transparent,
+                                onPrimary: Colors.black,
+                                elevation: 0),
+                            onPressed: () async {
+                              await deleteData(uuid);
+                              Navigator.pop(context);
+                              // print(uuidDelete);
+                              print(uuid);
+                            },
+                            child: Row(
+                              crossAxisAlignment: CrossAxisAlignment.center,
+                              mainAxisAlignment: MainAxisAlignment.start,
+                              children: [
+                                Container(
+                                  margin: const EdgeInsets.only(right: 10),
+                                  child: Icon(
+                                    Icons.delete,
+                                    color: Colors.blue,
+                                  ),
+                                ),
+                                Text("Delete Devices",
+                                    style: GoogleFonts.inter(
+                                        fontSize: 16,
+                                        fontWeight: FontWeight.bold,
+                                        color: Colors.black))
+                              ],
+                            )),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+          );
+        });
+  }
+
+  Future<dynamic> editDevices(BuildContext context, int id, String name,
+      String uuid, String topic, String active, String inactive) {
+    return showModalBottomSheet(
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.only(
+          topLeft: Radius.circular(20),
+          topRight: Radius.circular(20),
+        ),
+      ),
+      enableDrag: true,
+      isScrollControlled: true, // tambahkan ini agar modal dapat di-scroll
+      context: context,
+      builder: (BuildContext context) {
+        return SingleChildScrollView(
+          // tambahkan SingleChildScrollView
+          child: Form(
+            key: _formKey,
+            child: Padding(
+              padding: EdgeInsets.only(
+                bottom: MediaQuery.of(context)
+                    .viewInsets
+                    .bottom, // tambahkan ini agar padding bawah disesuaikan dengan keyboard
+                left: 22.0,
+                right: 22.0,
+                top: 22.0,
+              ),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Text(
+                    'Edit Device',
+                    style: GoogleFonts.inter(
+                      fontWeight: FontWeight.w600,
+                      fontSize: 16,
+                    ),
+                  ),
+                  SizedBox(height: 30.0),
+                  TextFormField(
+                    initialValue: updateList[0]['name_device'],
+                    // controller: nameController,
+                    keyboardType: TextInputType.text,
+                    style: TextStyle(fontSize: 14),
+                    decoration: InputDecoration(
+                      enabledBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(
+                          10.0,
+                        ),
+                        borderSide: BorderSide(
+                          color: Colors.grey.shade200,
+                        ),
+                      ),
+                      labelText: "Device Name",
+                      hintText: "Enter the device name",
+                      prefixIcon: Icon(Ionicons.tablet_landscape),
+                    ),
+                    validator: (value) => value!.length > 14
+                        ? 'Device name must be less than 14 characters'
+                        : null,
+                    onSaved: (value) => vnameDevice = value ?? '',
+                  ),
+                  SizedBox(height: 16.0),
+                  TextFormField(
+                    initialValue: updateList[0]['topic'],
+                    // controller: topicController,
+                    keyboardType: TextInputType.text,
+                    style: TextStyle(fontSize: 14),
+                    decoration: InputDecoration(
+                      enabledBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(
+                          10.0,
+                        ),
+                        borderSide: BorderSide(
+                          color: Colors.grey.shade200,
+                        ),
+                      ),
+                      labelText: "Topic",
+                      hintText: "Enter the topic name",
+                      prefixIcon: Icon(Ionicons.layers),
+                    ),
+                    onSaved: (value) => vtopic = value ?? '',
+                  ),
+                  // ignore: prefer_const_constructors
+                  SizedBox(height: 16.0),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Expanded(
+                        child: TextFormField(
+                          initialValue: updateList[0]['active'],
+                          keyboardType: TextInputType.text,
+                          // ignore: prefer_const_constructors
+                          style: TextStyle(fontSize: 14),
+                          decoration: InputDecoration(
+                            enabledBorder: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(
+                                10.0,
+                              ),
+                              borderSide: BorderSide(
+                                color: Colors.grey.shade200,
+                              ),
+                            ),
+                            labelText: "Active",
+                            hintText: "Message for Active",
+                            prefixIcon:
+                                // ignore: prefer_const_constructors
+                                Icon(Icons.double_arrow),
+                          ),
+                          onSaved: (value) => vactive = value ?? '',
+                        ),
+                      ),
+                      // ignore: prefer_const_constructors
+                      SizedBox(
+                        width: 15,
+                      ),
+                      Expanded(
+                        child: TextFormField(
+                          initialValue: updateList[0]['inactive'],
+                          // controller: inActiveController,
+                          keyboardType: TextInputType.text,
+                          // ignore: prefer_const_constructors
+                          style: TextStyle(fontSize: 14),
+                          decoration: InputDecoration(
+                            enabledBorder: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(
+                                10.0,
+                              ),
+                              borderSide: BorderSide(
+                                color: Colors.grey.shade200,
+                              ),
+                            ),
+                            labelText: "Inactive",
+                            hintText: "Message for Inactive",
+                            prefixIcon:
+                                // ignore: prefer_const_constructors
+                                Icon(Icons.double_arrow),
+                          ),
+                          onSaved: (value) => vinactive = value ?? '',
+                        ),
+                      ),
+                    ],
+                  ),
+                  // ignore: prefer_const_constructors
+                  SizedBox(height: 16.0),
+                  ElevatedButton(
+                    style: ElevatedButton.styleFrom(
+                      primary: Colors.blue.shade800,
+                    ),
+                    onPressed: () async {
+                      try {
+                        await fetchUpdateDevice(id);
+                        Navigator.pop(context);
+                        // _submit();
+                        print(id);
+                        print(uuid);
+                        // print(vnameDevice);
+                        // print(vtopic);
+                        // print(vactive);
+                        // print(vinactive);
+                      } catch (e) {
+                        print(e);
+                      }
+                    },
+                    child: Text(
+                      'edit Device',
+                      style: GoogleFonts.inter(
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  ),
+                  // ignore: prefer_const_constructors
+                  SizedBox(height: 16.0),
+                ],
+              ),
+            ),
+          ),
+        );
+      },
+    );
   }
 
   @override
@@ -164,22 +513,25 @@ class _RoomPageState extends State<RoomPage> {
                           print(selectedCardText);
                           print(widget.uuid);
                         });
-                        data['name_feature'] == 'LAMP'
-                            ? fetchDevice(
-                                widget.uuid, selectedCardText?.toLowerCase())
-                            : data['name_feature'] == 'REMOTE'
-                                ? fetchDevice(widget.uuid,
-                                    selectedCardText?.toLowerCase())
-                                : data['name_feature'] == 'KWH MONITORING'
-                                    ? fetchDevice(widget.uuid,
-                                        selectedCardText?.toLowerCase())
-                                    : data['name_feature'] == 'SENSOR SUHU'
-                                        ? fetchDevice(widget.uuid,
-                                            selectedCardText?.toLowerCase())
-                                        : data['name_feature'] == 'AC'
-                                            ? fetchDevice(widget.uuid,
-                                                selectedCardText?.toLowerCase())
-                                            : print('err');
+                        try {
+                          data['name_feature'] == 'LAMP'
+                              ? fetchDevice(widget.uuid, 'power')
+                              : data['name_feature'] == 'REMOTE'
+                                  ? fetchDevice(widget.uuid,
+                                      selectedCardText?.toLowerCase())
+                                  : data['name_feature'] == 'KWH MONITORING'
+                                      ? fetchDevice(widget.uuid,
+                                          selectedCardText?.toLowerCase())
+                                      : data['name_feature'] == 'SENSOR SUHU'
+                                          ? fetchDevice(widget.uuid,
+                                              selectedCardText?.toLowerCase())
+                                          : data['name_feature'] == 'AC'
+                                              ? fetchDevice(
+                                                  widget.uuid, 'power')
+                                              : print('err');
+                        } catch (e) {
+                          print(e);
+                        }
                       },
                       icon: data['name_feature'] == 'LAMP'
                           ? Ionicons.bulb
@@ -209,100 +561,177 @@ class _RoomPageState extends State<RoomPage> {
                     child: ListView(
                       children: [
                         for (var data in deviceList)
-                          selectedCardText == 'LAMP'
-                              ? CardDevice(
-                                  icon: Ionicons.bulb,
-                                  leadingButton: Switch(
-                                    value: lampValue,
-                                    onChanged: (value) {
-                                      setState(() {
-                                        lampValue = value;
-                                      });
+                          selectedCardText == 'LAMP' && isSuccess
+                              ? InkWell(
+                                  onLongPress: () {
+                                    // deleteData('${data['uuid']}');
+                                    // addDevices(context);
+                                    // modalBottomSheet(context, '${data["uuid"]}', data['id'].toString());
+                                    editDevice('$uuidDelete');
+                                    modalBottomSheet(
+                                        context,
+                                        '${data["uuid"]}',
+                                        data['id'],
+                                        data["name_device"].toString(),
+                                        data["topic"].toString(),
+                                        data["active"].toString(),
+                                        data["inactive"].toString());
+                                  },
+                                  child: CardDevice(
+                                    icon: Ionicons.bulb,
+                                    leadingButton: Switch(
+                                      value: lampValue,
+                                      onChanged: (value) {
+                                        setState(() {
+                                          lampValue = value;
+                                        });
+                                      },
+                                    ),
+                                    nameDevice: '${data['name_device']}',
+                                    onTap: () {
+                                      print('${data['uuid']}');
                                     },
+                                    status: data['name_device'] == ''
+                                        ? 'Not Connected'
+                                        : 'Connected',
                                   ),
-                                  nameDevice: '${data['name_device']}',
-                                  onTap: () {},
-                                  status: data['name_device'] == ''
-                                      ? 'Not Connected'
-                                      : 'Connected',
                                 )
-                              : selectedCardText == 'KWH MONITORING'
-                                  ? CardDevice(
-                                      icon: Ionicons.logo_electron,
-                                      leadingButton: Switch(
-                                        value: switchValue,
-                                        onChanged: (value) {
-                                          setState(() {
-                                            switchValue = value;
-                                          });
-                                        },
+                              : selectedCardText == 'KWH MONITORING' &&
+                                      isSuccess
+                                  ? InkWell(
+                                      onLongPress: () {
+                                        modalBottomSheet(
+                                            context,
+                                            '${data["uuid"]}',
+                                            data['id'],
+                                            data["name_device"].toString(),
+                                            data["topic"].toString(),
+                                            data["active"].toString(),
+                                            data["inactive"].toString());
+                                      },
+                                      child: CardDevice(
+                                        icon: Ionicons.logo_electron,
+                                        leadingButton: Switch(
+                                          value: switchValue,
+                                          onChanged: (value) {
+                                            setState(() {
+                                              switchValue = value;
+                                            });
+                                          },
+                                        ),
+                                        nameDevice: '${data['name_device']}',
+                                        onTap: () {},
+                                        status: data['name_device'] == ''
+                                            ? 'Not Connected'
+                                            : 'Connected',
                                       ),
-                                      nameDevice:
-                                          '${data['name_device']}',
-                                      onTap: () {},
-                                      status: data['name_device'] == ''
-                                          ? 'Not Connected'
-                                          : 'Connected',
                                     )
-                                  : selectedCardText == 'SENSOR SUHU'
-                                      ? CardDevice(
-                                          icon: Ionicons.thermometer,
-                                          leadingButton: Switch(
-                                            value: switchValue,
-                                            onChanged: (value) {
-                                              setState(() {
-                                                switchValue = value;
-                                              });
-                                            },
-                                          ),
-                                          nameDevice:
-                                              '${data['name_device']}',
-                                          onTap: () {},
-                                          status:
-                                              data['name_device'] == ''
-                                                  ? 'Not Connected'
-                                                  : 'Connected',
-                                        )
-                                      : selectedCardText == 'AC'
-                                          ? CardDevice(
-                                              icon: Ionicons.snow,
-                                              leadingButton: const Icon(
-                                                Ionicons.chevron_forward,
-                                                size: 24.0,
-                                              ),
-                                              nameDevice:
-                                                  '${data['name_device']}',
-                                              onTap: () {
-                                                Navigator.push(
-                                                  context,
-                                                  MaterialPageRoute(
-                                                      builder: (context) =>
-                                                          AcPage()),
-                                                );
+                                  : selectedCardText == 'SENSOR SUHU' &&
+                                          isSuccess
+                                      ? InkWell(
+                                          onLongPress: () {
+                                            modalBottomSheet(
+                                                context,
+                                                '${data["uuid"]}',
+                                                data['id'],
+                                                data["name_device"].toString(),
+                                                data["topic"].toString(),
+                                                data["active"].toString(),
+                                                data["inactive"].toString());
+                                          },
+                                          child: CardDevice(
+                                            icon: Ionicons.thermometer,
+                                            leadingButton: Switch(
+                                              value: switchValue,
+                                              onChanged: (value) {
+                                                setState(() {
+                                                  switchValue = value;
+                                                });
                                               },
-                                              status: data['name_device'] == ''
-                                                  ? 'Not Connected'
-                                                  : 'Connected',
+                                            ),
+                                            nameDevice:
+                                                '${data['name_device']}',
+                                            onTap: () {},
+                                            status: data['name_device'] == ''
+                                                ? 'Not Connected'
+                                                : 'Connected',
+                                          ),
+                                        )
+                                      : selectedCardText == 'AC' && isSuccess
+                                          ? InkWell(
+                                              onLongPress: () {
+                                                modalBottomSheet(
+                                                    context,
+                                                    '${data["uuid"]}',
+                                                    data['id'],
+                                                    data["name_device"]
+                                                        .toString(),
+                                                    data["topic"].toString(),
+                                                    data["active"].toString(),
+                                                    data["inactive"]
+                                                        .toString());
+                                              },
+                                              child: CardDevice(
+                                                icon: Ionicons.snow,
+                                                leadingButton: const Icon(
+                                                  Ionicons.chevron_forward,
+                                                  size: 24.0,
+                                                ),
+                                                nameDevice:
+                                                    '${data['name_device']}',
+                                                onTap: () {
+                                                  Navigator.push(
+                                                    context,
+                                                    MaterialPageRoute(
+                                                        builder: (context) =>
+                                                            AcPage()),
+                                                  );
+                                                },
+                                                status:
+                                                    data['name_device'] == ''
+                                                        ? 'Not Connected'
+                                                        : 'Connected',
+                                              ),
                                             )
-                                          : selectedCardText == 'REMOTE'
-                                              ? CardDevice(
-                                                  icon: Icons.control_camera,
-                                                  leadingButton: const Icon(
-                                                    Ionicons.chevron_forward,
-                                                    size: 24.0,
-                                                  ),
-                                                  nameDevice: '${data['name_device']}',
-                                                  onTap: () {
-                                                    Navigator.push(
-                                                      context,
-                                                      MaterialPageRoute(
-                                                          builder: (context) =>
-                                                              AudioPage()),
-                                                    );
+                                          : selectedCardText == 'REMOTE' &&
+                                                  isSuccess
+                                              ? InkWell(
+                                                  onLongPress: () {
+                                                    modalBottomSheet(
+                                                        context,
+                                                        '${data["uuid"]}',
+                                                        data['id'],
+                                                        data["name_device"]
+                                                            .toString(),
+                                                        data["topic"]
+                                                            .toString(),
+                                                        data["active"]
+                                                            .toString(),
+                                                        data["inactive"]
+                                                            .toString());
                                                   },
-                                                  status: data['name_device'] == ''
-                                                      ? 'Not Connected'
-                                                      : 'Connected',
+                                                  child: CardDevice(
+                                                    icon: Icons.control_camera,
+                                                    leadingButton: const Icon(
+                                                      Ionicons.chevron_forward,
+                                                      size: 24.0,
+                                                    ),
+                                                    nameDevice:
+                                                        '${data['name_device']}',
+                                                    onTap: () {
+                                                      Navigator.push(
+                                                        context,
+                                                        MaterialPageRoute(
+                                                            builder: (context) =>
+                                                                AudioPage()),
+                                                      );
+                                                    },
+                                                    status:
+                                                        data['name_device'] ==
+                                                                ''
+                                                            ? 'Not Connected'
+                                                            : 'Connected',
+                                                  ),
                                                 )
                                               : Text('low')
                       ],

@@ -558,9 +558,6 @@ class _allCardState extends State<allCard> {
             Wrap(spacing: 10.0, runSpacing: 10.0, children: [
               for (var data in detailDevices)
                 InkWell(
-                  onDoubleTap: () {
-                    deleteDevice(context);
-                  },
                   onTap: () {
                     setState(() {
                       data['name_feature'] == 'LAMP'
@@ -573,8 +570,7 @@ class _allCardState extends State<allCard> {
                                       ? curtain = !curtain
                                       : switchBoard = !switchBoard;
                     });
-                    widget.mqttServices
-                        .sendMessage('Cikunir/lt2/stts2/sharp', 'Started');
+                    widget.mqttServices.sendMessage('Cikunir/lt2/stts2/sharp', 'Started');
                   },
                   child: cardDeviceBoard(
                     deviceType: "${data['name_device']}",
@@ -586,7 +582,7 @@ class _allCardState extends State<allCard> {
                                 ? "${detailDevices.length}"
                                 : _selectedItem?.name == 'TFLM'
                                     ? "${detailDevices.length}"
-                                    : 'Device unknown',
+                                    : '',
                     width: widget.width,
                     varType: data['name_feature'] == 'LAMP'
                         ? lamp

@@ -8,7 +8,7 @@ class MqttService2 {
   MqttServerClient? client2;
   bool _connected = false;
   late StreamSubscription subscription;
-  String temp = '';
+  String temp = 'wait...';
 
   // static final MqttService2 _singleton = MqttService2._internal();
   // factory MqttService2() => _singleton;
