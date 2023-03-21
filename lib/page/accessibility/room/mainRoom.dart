@@ -391,7 +391,7 @@ class _RoomPageState extends State<RoomPage> {
                         print(id);
                         print(uuid);
                         // print(vnameDevice);
-                        // print(vtopic);
+                        print(vtopic);
                         // print(vactive);
                         // print(vinactive);
                       } catch (e) {
