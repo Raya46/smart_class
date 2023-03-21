@@ -399,7 +399,7 @@ class _RoomPageState extends State<RoomPage> {
                       }
                     },
                     child: Text(
-                      'edit Device',
+                      'Edit Device',
                       style: GoogleFonts.inter(
                         fontWeight: FontWeight.bold,
                       ),
