@@ -80,7 +80,7 @@ class _AccessPageState extends State<AccessPage> {
                         ? Icons.electric_bolt
                         : data['name_room'].contains('TAV')
                             ? Icons.movie_sharp
-                            : data['name_room'].contains('TFLM')
+                            : data['name_room'].contains('TFLM') || data['name_room'].contains('TMPO')
                                 ? Icons.precision_manufacturing
                                 : Icons.device_unknown)
             ],

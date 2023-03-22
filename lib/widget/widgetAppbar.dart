@@ -18,7 +18,7 @@ AppBar homeAppbar(BuildContext context) {
         return LinearColor().createShader(bounds);
       },
       child: Text(
-        'SmartClass',
+        'SmartLearning',
         style: GoogleFonts.chakraPetch(
           fontSize: 24.0,
           fontWeight: FontWeight.bold,

@@ -44,7 +44,7 @@ class _HomePageState extends State<HomePage> {
             child: Container(
               color: Colors.white,
               child: Column(children: <Widget>[
-                Expanded(
+                Flexible(
                   flex: 2,
                   child: HeaderCard(
                     width: width,
@@ -53,7 +53,7 @@ class _HomePageState extends State<HomePage> {
                     weather: '${widget.weather}', mqttServices: mqttService,
                   ),
                 ),
-                Expanded(
+                Flexible(
                     flex: 7,
                     child: allCard(
                       width: width,

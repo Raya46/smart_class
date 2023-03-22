@@ -427,6 +427,7 @@ class _RoomPageState extends State<RoomPage> {
   void initState() {
     super.initState();
     try {
+      widget.mqttServices.connectAndSubscribe();
       fetchApi();
       setState(() {
         selectedCardIndex = 0;
@@ -510,7 +511,8 @@ class _RoomPageState extends State<RoomPage> {
                 children: [
                   for (var data in cardList)
                     CircleList(
-                      title: data['name_feature'],
+                      title: data['name_feature']
+                          .replaceAll(RegExp(r'\[(.*?)\]'), ''),
                       onTap: () {
                         setState(() {
                           // selectedCardIndex = data['id'];
@@ -533,7 +535,7 @@ class _RoomPageState extends State<RoomPage> {
                                       ? fetchDevice(widget.uuid,
                                           selectedCardText?.toLowerCase())
                                       : data['name_feature'] ==
-                                              '[SENSOR-TH] SENSOR SUHU'
+                                              '[SENSOR TH] SENSOR SUHU'
                                           ? fetchDevice(widget.uuid,
                                               selectedCardText?.toLowerCase())
                                           : data['name_feature'] == '[POWER] AC'
@@ -544,15 +546,23 @@ class _RoomPageState extends State<RoomPage> {
                           print(e);
                         }
                       },
-                      icon: data['name_feature'] == 'LAMP'
+                      icon: data['name_feature'] == '[POWER] LAMP'
                           ? Ionicons.bulb
-                          : data['name_feature'] == 'AC'
+                          : data['name_feature'] == '[REMOTE] AC' ||
+                                  data['name_feature'] == '[POWER] AC'
                               ? Ionicons.snow
-                              : data['name_feature'] == 'SENSOR SUHU'
+                              : data['name_feature'] ==
+                                      '[SENSOR TH] TEMPERATURE SENSOR'
                                   ? Ionicons.thermometer
-                                  : data['name_feature'] == 'KWH MONITORING'
+                                  : data['name_feature'] ==
+                                          '[MONITORING] KWH MONITORING'
                                       ? Ionicons.logo_electron
-                                      : Icons.control_camera_sharp,
+                                      : data['name_feature'] ==
+                                                  '[REMOTE] HUMIDIFIER' ||
+                                              data['name_feature'] ==
+                                                  '[POWER] HUMIDIFIER'
+                                          ? Icons.air
+                                          : Icons.curtains,
                       color: isSelected ? primary : secondary,
                       iconColor: isSelected ? highlight : primary,
                       isSelected: data['id'] == selectedCardIndex,
@@ -572,186 +582,117 @@ class _RoomPageState extends State<RoomPage> {
                     child: ListView(
                       children: [
                         for (var data in deviceList)
-                          selectedCardText == '[POWER] LAMP'
-                              ? InkWell(
-                                  onLongPress: () {
-                                    // deleteData('${data['uuid']}');
-                                    // addDevices(context);
-                                    // modalBottomSheet(context, '${data["uuid"]}', data['id'].toString());
-                                    editDevice(data['uuid']);
-                                    modalBottomSheet(
-                                        context,
-                                        data["uuid"],
-                                        data["id"],
-                                        data["name_device"].toString(),
-                                        data["topic"].toString(),
-                                        data["active"].toString(),
-                                        data["inactive"].toString());
+                          if (selectedCardText == '[POWER] LAMP' &&
+                              data['name_feature'] ==
+                                  '[POWER] LAMP') 
+                            InkWell(
+                              onLongPress: () {
+                                editDevice(data['uuid']);
+                                modalBottomSheet(
+                                    context,
+                                    data["uuid"],
+                                    data["id"],
+                                    data["name_device"].toString(),
+                                    data["topic"].toString(),
+                                    data["active"].toString(),
+                                    data["inactive"].toString());
+                              },
+                              child: CardDevice(
+                                icon: Ionicons.bulb,
+                                leadingButton: Switch(
+                                  value: lampValue,
+                                  onChanged: (value) {
+                                    setState(() {
+                                      lampValue = value;
+                                    });
                                   },
-                                  child: CardDevice(
-                                    icon: Ionicons.bulb,
-                                    leadingButton: Switch(
-                                      value: lampValue,
-                                      onChanged: (value) {
-                                        setState(() {
-                                          lampValue = value;
-                                        });
-                                      },
-                                    ),
-                                    nameDevice: '${data['name_device']}',
-                                    onTap: () {
-                                      print('${data['uuid']}');
-                                      print(data['topic']);
-                                      widget.mqttServices.sendMessage(
-                                          'Cikunir/lt2/stts2/sharp', 'ac');
-                                    },
-                                    status: data['name_device'] == ''
-                                        ? 'Not Connected'
-                                        : 'Connected',
-                                  ),
-                                )
-                              : selectedCardText ==
-                                          '[MONITORING] KWH MONITORING' &&
-                                      isSuccess
-                                  ? InkWell(
-                                      onLongPress: () {
-                                        modalBottomSheet(
-                                            context,
-                                            '${data["uuid"]}',
-                                            data['id'],
-                                            data["name_device"].toString(),
-                                            data["topic"].toString(),
-                                            data["active"].toString(),
-                                            data["inactive"].toString());
-                                      },
-                                      child: CardDevice(
-                                        icon: Ionicons.logo_electron,
-                                        leadingButton: Switch(
-                                          value: switchValue,
-                                          onChanged: (value) {
-                                            setState(() {
-                                              switchValue = value;
-                                            });
-                                          },
-                                        ),
-                                        nameDevice: '${data['name_device']}',
-                                        onTap: () {},
-                                        status: data['name_device'] == ''
-                                            ? 'Not Connected'
-                                            : 'Connected',
-                                      ),
-                                    )
-                                  : selectedCardText ==
-                                              '[SENSOR TH] SENSOR SUHU' &&
-                                          isSuccess
-                                      ? InkWell(
-                                          onLongPress: () {
-                                            modalBottomSheet(
-                                                context,
-                                                '${data["uuid"]}',
-                                                data['id'],
-                                                data["name_device"].toString(),
-                                                data["topic"].toString(),
-                                                data["active"].toString(),
-                                                data["inactive"].toString());
-                                          },
-                                          child: CardDevice(
-                                            icon: Ionicons.thermometer,
-                                            leadingButton: Switch(
-                                              value: switchValue,
-                                              onChanged: (value) {
-                                                setState(() {
-                                                  switchValue = value;
-                                                });
-                                              },
-                                            ),
-                                            nameDevice:
-                                                '${data['name_device']}',
-                                            onTap: () {},
-                                            status: data['name_device'] == ''
-                                                ? 'Not Connected'
-                                                : 'Connected',
-                                          ),
-                                        )
-                                      : selectedCardText == '[POWER] AC' &&
-                                              isSuccess
-                                          ? InkWell(
-                                              onLongPress: () {
-                                                modalBottomSheet(
-                                                    context,
-                                                    '${data["uuid"]}',
-                                                    data['id'],
-                                                    data["name_device"]
-                                                        .toString(),
-                                                    data["topic"].toString(),
-                                                    data["active"].toString(),
-                                                    data["inactive"]
-                                                        .toString());
-                                              },
-                                              child: CardDevice(
-                                                icon: Ionicons.snow,
-                                                leadingButton: const Icon(
-                                                  Ionicons.chevron_forward,
-                                                  size: 24.0,
-                                                ),
-                                                nameDevice:
-                                                    '${data['name_device']}',
-                                                onTap: () {
-                                                  Navigator.push(
-                                                    context,
-                                                    MaterialPageRoute(
-                                                        builder: (context) =>
-                                                            AcPage()),
-                                                  );
-                                                },
-                                                status:
-                                                    data['name_device'] == ''
-                                                        ? 'Not Connected'
-                                                        : 'Connected',
-                                              ),
-                                            )
-                                          : selectedCardText ==
-                                                      '[POWER] REMOTE' &&
-                                                  isSuccess
-                                              ? InkWell(
-                                                  onLongPress: () {
-                                                    modalBottomSheet(
-                                                        context,
-                                                        '${data["uuid"]}',
-                                                        data['id'],
-                                                        data["name_device"]
-                                                            .toString(),
-                                                        data["topic"]
-                                                            .toString(),
-                                                        data["active"]
-                                                            .toString(),
-                                                        data["inactive"]
-                                                            .toString());
-                                                  },
-                                                  child: CardDevice(
-                                                    icon: Icons.control_camera,
-                                                    leadingButton: const Icon(
-                                                      Ionicons.chevron_forward,
-                                                      size: 24.0,
-                                                    ),
-                                                    nameDevice:
-                                                        '${data['name_device']}',
-                                                    onTap: () {
-                                                      Navigator.push(
-                                                        context,
-                                                        MaterialPageRoute(
-                                                            builder: (context) =>
-                                                                AudioPage()),
-                                                      );
-                                                    },
-                                                    status:
-                                                        data['name_device'] ==
-                                                                ''
-                                                            ? 'Not Connected'
-                                                            : 'Connected',
-                                                  ),
-                                                )
-                                              : Text('low')
+                                ),
+                                nameDevice: '${data['name_device']}',
+                                onTap: () {
+                                  print('${data['uuid']}');
+                                  print(data['topic']);
+                                  widget.mqttServices.sendMessage(
+                                      data['topic'], '1');
+                                },
+                                status: data['name_device'] == ''
+                                    ? 'Not Connected'
+                                    : 'Connected',
+                              ),
+                            )
+                          else if (selectedCardText == '[POWER] AC' &&
+                              data['name_feature'] ==
+                                  '[POWER] AC') // menampilkan card AC jika card AC dipilih dan jenis perangkat adalah AC
+                            InkWell(
+                              onLongPress: () {
+                                editDevice(data['uuid']);
+                                modalBottomSheet(
+                                    context,
+                                    data["uuid"],
+                                    data["id"],
+                                    data["name_device"].toString(),
+                                    data["topic"].toString(),
+                                    data["active"].toString(),
+                                    data["inactive"].toString());
+                              },
+                              child: CardDevice(
+                                icon: Ionicons.bulb,
+                                leadingButton: Switch(
+                                  value: lampValue,
+                                  onChanged: (value) {
+                                    setState(() {
+                                      lampValue = value;
+                                    });
+                                  },
+                                ),
+                                nameDevice: '${data['name_device']}',
+                                onTap: () {
+                                  print('${data['uuid']}');
+                                  print(data['topic']);
+                                  widget.mqttServices.sendMessage(
+                                      'Cikunir/lt2/stts2/sharp', 'ac');
+                                },
+                                status: data['name_device'] == ''
+                                    ? 'Not Connected'
+                                    : 'Connected',
+                              ),
+                            )
+                          else if (selectedCardText == '[SENSOR TH] TEMPERATURE SENSOR' &&
+                              data['name_feature'] ==
+                                  '[SENSOR TH] TEMPERATURE SENSOR') 
+                            InkWell(
+                              onLongPress: () {
+                                editDevice(data['uuid']);
+                                modalBottomSheet(
+                                    context,
+                                    data["uuid"],
+                                    data["id"],
+                                    data["name_device"].toString(),
+                                    data["topic"].toString(),
+                                    data["active"].toString(),
+                                    data["inactive"].toString());
+                              },
+                              child: CardDevice(
+                                icon: Ionicons.bulb,
+                                leadingButton: Switch(
+                                  value: lampValue,
+                                  onChanged: (value) {
+                                    setState(() {
+                                      lampValue = value;
+                                    });
+                                  },
+                                ),
+                                nameDevice: '${data['name_device']}',
+                                onTap: () {
+                                  print('${data['uuid']}');
+                                  print(data['topic']);
+                                  widget.mqttServices.sendMessage(
+                                      'Cikunir/lt2/stts2/sharp', 'ac');
+                                },
+                                status: data['name_device'] == ''
+                                    ? 'Not Connected'
+                                    : 'Connected',
+                              ),
+                            )
                       ],
                     ),
                   ))),

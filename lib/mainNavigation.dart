@@ -416,7 +416,7 @@ class floatingButton extends StatelessWidget {
         foregroundColor: secondary,
         onPressed: () {
           // print('${uuid}');
-          // addDevice();
+          addDevice();
           
         },
         child: const Icon(
