@@ -361,7 +361,7 @@ class _allCardState extends State<allCard> {
       isDeleting = true;
     });
 
-    final response = await http.delete(Uri.parse('http://smartlearning.solusi-rnd.tech/api/delete-devices/$uuid'));
+    final response = await http.delete(Uri.parse('http://smartlearning.solusi-rnd.tech/api/devices/$uuid'));
     if (response.statusCode == 200) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Item deleted successfully')),
@@ -472,7 +472,7 @@ class _allCardState extends State<allCard> {
   Future<void> fetchDataFeatures() async {
     try {
       final response = await http.get(
-        Uri.parse('http://smartlearning.solusi-rnd.tech/api/data-features'),
+        Uri.parse('http://smartlearning.solusi-rnd.tech/api/features'),
       );
       setState(() {
         List<dynamic> jsonFeatures = jsonDecode(response.body);
@@ -490,7 +490,7 @@ class _allCardState extends State<allCard> {
   Future<void> _fetchDataClass() async {
     try {
       final response = await http.get(
-        Uri.parse('http://smartlearning.solusi-rnd.tech/api/data-rooms'),
+        Uri.parse('http://smartlearning.solusi-rnd.tech/api/rooms'),
       );
       setState(() {
         _classData = jsonDecode(response.body);
@@ -502,7 +502,7 @@ class _allCardState extends State<allCard> {
   Future<void> fetchDetail(String uuid) async {
     try {
       final response = await http.get(
-        Uri.parse('http://smartlearning.solusi-rnd.tech/api/data-devices-power/$uuid'),
+        Uri.parse('http://smartlearning.solusi-rnd.tech/api/device/$uuid/power'),
       );
       setState(() {
         detailDevices = jsonDecode(response.body);

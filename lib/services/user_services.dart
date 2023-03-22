@@ -111,7 +111,7 @@ Future<bool> logout() async {
 
 
  Future<List<Room>> fetchApiRoom() async {
-  final response = await http.get(Uri.parse('http://smartlearning.solusi-rnd.tech/api/data-rooms'));
+  final response = await http.get(Uri.parse('http://smartlearning.solusi-rnd.tech/api/rooms'));
   if (response.statusCode == 200) {
     List<dynamic> body = jsonDecode(response.body);
     List<Room> rooms = body.map((room) => Room.fromJson(room)).toList();

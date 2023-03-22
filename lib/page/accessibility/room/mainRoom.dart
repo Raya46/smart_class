@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_smartclass/global/color.dart';
 import 'package:flutter_smartclass/page/accessibility/room/audioPage.dart';
 import 'package:flutter_smartclass/page/accessibility/room/mainAc.dart';
+import 'package:flutter_smartclass/services/mqtt_services.dart';
 import 'package:flutter_smartclass/widget/roompage/widgetroom.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:ionicons/ionicons.dart';
@@ -12,7 +13,12 @@ import 'package:http/http.dart' as http;
 class RoomPage extends StatefulWidget {
   var roomName;
   var uuid;
-  RoomPage({super.key, required this.roomName, required this.uuid});
+  MqttService2 mqttServices;
+  RoomPage(
+      {super.key,
+      required this.roomName,
+      required this.uuid,
+      required this.mqttServices});
 
   @override
   State<RoomPage> createState() => _RoomPageState();
@@ -35,14 +41,15 @@ class _RoomPageState extends State<RoomPage> {
   String? vnameDevice, vtopic, vactive, vinactive;
   int? vid;
   String? uuidDelete;
+  MqttService2 mqttServices = MqttService2();
 
   Future<void> deleteData(String uuid) async {
     setState(() {
       isDeleting = true;
     });
 
-    final response = await http.delete(Uri.parse(
-        'http://smartlearning.solusi-rnd.tech/api/delete-devices/$uuid'));
+    final response = await http.delete(
+        Uri.parse('http://smartlearning.solusi-rnd.tech/api/devices/$uuid'));
     if (response.statusCode == 200) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Item deleted successfully')),
@@ -59,7 +66,7 @@ class _RoomPageState extends State<RoomPage> {
   }
 
   void fetchApi() async {
-    String apiUrl = 'http://smartlearning.solusi-rnd.tech/api/data-features';
+    String apiUrl = 'http://smartlearning.solusi-rnd.tech/api/features';
     http.Response response = await http.get(Uri.parse(apiUrl));
     var result = jsonDecode(response.body);
     if (response.statusCode == 200) {
@@ -72,8 +79,7 @@ class _RoomPageState extends State<RoomPage> {
   fetchUpdateDevice(int id) async {
     if (_formKey.currentState!.validate()) {
       _formKey.currentState!.save();
-      String url =
-          'http://smartlearning.solusi-rnd.tech/api/update-devices/$id';
+      String url = 'http://smartlearning.solusi-rnd.tech/api/devices/$id';
       http.Response response = await http.patch(
         Uri.parse(url),
         headers: {'Content-Type': 'application/json'},
@@ -99,7 +105,7 @@ class _RoomPageState extends State<RoomPage> {
     try {
       final response = await http.get(
         Uri.parse(
-            'http://smartlearning.solusi-rnd.tech/api/detail-devices/$uuidDevice'),
+            'http://smartlearning.solusi-rnd.tech/api/device/$uuidDevice/detail'),
       );
       setState(() {
         updateList = jsonDecode(response.body);
@@ -111,7 +117,7 @@ class _RoomPageState extends State<RoomPage> {
 
   void fetchDevice(String uuid, String? deviceType) async {
     String urlLampu =
-        'http://smartlearning.solusi-rnd.tech/api/data-devices-$deviceType/${widget.uuid}';
+        'http://smartlearning.solusi-rnd.tech/api/device/${widget.uuid}/$deviceType';
     http.Response response = await http.get(Uri.parse(urlLampu));
     var result = jsonDecode(response.body);
     if (response.statusCode == 200) {
@@ -125,6 +131,7 @@ class _RoomPageState extends State<RoomPage> {
       });
     }
     print('ini ${response.statusCode}');
+    print('ini ${deviceList}');
   }
 
   Future<dynamic> modalBottomSheet(BuildContext context, String uuid, int id,
@@ -511,21 +518,25 @@ class _RoomPageState extends State<RoomPage> {
                           selectedCardText = data['name_feature'];
                           // print(selectedCardIndex);
                           print(selectedCardText);
-                          print(widget.uuid);
+                          print('ini ${widget.uuid}');
+                          print(data['topic']);
+                          // print(deviceType);
                         });
                         try {
-                          data['name_feature'] == 'LAMP'
+                          data['name_feature'] == '[POWER] LAMP'
                               ? fetchDevice(widget.uuid, 'power')
-                              : data['name_feature'] == 'REMOTE'
+                              : data['name_feature'] == '[REMOTE] REMOTE'
                                   ? fetchDevice(widget.uuid,
                                       selectedCardText?.toLowerCase())
-                                  : data['name_feature'] == 'KWH MONITORING'
+                                  : data['name_feature'] ==
+                                          '[MONITORING] KWH MONITORING'
                                       ? fetchDevice(widget.uuid,
                                           selectedCardText?.toLowerCase())
-                                      : data['name_feature'] == 'SENSOR SUHU'
+                                      : data['name_feature'] ==
+                                              '[SENSOR-TH] SENSOR SUHU'
                                           ? fetchDevice(widget.uuid,
                                               selectedCardText?.toLowerCase())
-                                          : data['name_feature'] == 'AC'
+                                          : data['name_feature'] == '[POWER] AC'
                                               ? fetchDevice(
                                                   widget.uuid, 'power')
                                               : print('err');
@@ -561,17 +572,17 @@ class _RoomPageState extends State<RoomPage> {
                     child: ListView(
                       children: [
                         for (var data in deviceList)
-                          selectedCardText == 'LAMP' && isSuccess
+                          selectedCardText == '[POWER] LAMP'
                               ? InkWell(
                                   onLongPress: () {
                                     // deleteData('${data['uuid']}');
                                     // addDevices(context);
                                     // modalBottomSheet(context, '${data["uuid"]}', data['id'].toString());
-                                    editDevice('$uuidDelete');
+                                    editDevice(data['uuid']);
                                     modalBottomSheet(
                                         context,
-                                        '${data["uuid"]}',
-                                        data['id'],
+                                        data["uuid"],
+                                        data["id"],
                                         data["name_device"].toString(),
                                         data["topic"].toString(),
                                         data["active"].toString(),
@@ -590,13 +601,17 @@ class _RoomPageState extends State<RoomPage> {
                                     nameDevice: '${data['name_device']}',
                                     onTap: () {
                                       print('${data['uuid']}');
+                                      print(data['topic']);
+                                      widget.mqttServices.sendMessage(
+                                          'Cikunir/lt2/stts2/sharp', 'ac');
                                     },
                                     status: data['name_device'] == ''
                                         ? 'Not Connected'
                                         : 'Connected',
                                   ),
                                 )
-                              : selectedCardText == 'KWH MONITORING' &&
+                              : selectedCardText ==
+                                          '[MONITORING] KWH MONITORING' &&
                                       isSuccess
                                   ? InkWell(
                                       onLongPress: () {
@@ -626,7 +641,8 @@ class _RoomPageState extends State<RoomPage> {
                                             : 'Connected',
                                       ),
                                     )
-                                  : selectedCardText == 'SENSOR SUHU' &&
+                                  : selectedCardText ==
+                                              '[SENSOR TH] SENSOR SUHU' &&
                                           isSuccess
                                       ? InkWell(
                                           onLongPress: () {
@@ -657,7 +673,8 @@ class _RoomPageState extends State<RoomPage> {
                                                 : 'Connected',
                                           ),
                                         )
-                                      : selectedCardText == 'AC' && isSuccess
+                                      : selectedCardText == '[POWER] AC' &&
+                                              isSuccess
                                           ? InkWell(
                                               onLongPress: () {
                                                 modalBottomSheet(
@@ -693,7 +710,8 @@ class _RoomPageState extends State<RoomPage> {
                                                         : 'Connected',
                                               ),
                                             )
-                                          : selectedCardText == 'REMOTE' &&
+                                          : selectedCardText ==
+                                                      '[POWER] REMOTE' &&
                                                   isSuccess
                                               ? InkWell(
                                                   onLongPress: () {

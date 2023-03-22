@@ -6,12 +6,16 @@ import 'package:flutter/material.dart';
 import 'package:flutter_smartclass/global/color.dart';
 import 'package:flutter_smartclass/global/textstyle.dart';
 import 'package:flutter_smartclass/page/accessibility/room/mainRoom.dart';
+import 'package:flutter_smartclass/services/mqtt_services.dart';
 import 'package:flutter_smartclass/widget/widgetAppbar.dart';
 import 'package:ionicons/ionicons.dart';
 import 'package:http/http.dart' as http;
 
 class AccessPage extends StatefulWidget {
-  const AccessPage({super.key});
+  MqttService2 mqttServices;
+  AccessPage({super.key, 
+  required this.mqttServices
+  });
 
   @override
   State<AccessPage> createState() => _AccessPageState();
@@ -31,7 +35,7 @@ class _AccessPageState extends State<AccessPage> {
   }
 
   void fetchApi() async {
-    String apiUrl = 'http://smartlearning.solusi-rnd.tech/api/data-rooms';
+    String apiUrl = 'http://smartlearning.solusi-rnd.tech/api/rooms';
     http.Response response = await http.get(Uri.parse(apiUrl));
     var result = jsonDecode(response.body);
     setState(() {
@@ -61,7 +65,8 @@ class _AccessPageState extends State<AccessPage> {
                           MaterialPageRoute(
                               builder: (context) => RoomPage(
                                     roomName: '${data['name_room']}',
-                                    uuid: '${data['uuid']}',
+                                    uuid: '${data['uuid']}', 
+                                    mqttServices: widget.mqttServices,
                                   )),
                         );
                       }

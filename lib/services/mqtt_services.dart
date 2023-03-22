@@ -56,10 +56,12 @@ class MqttService2 {
   void onConnected() {
     _connected = true;
     client2!.subscribe('Cikunir/lt2/ac2/pzem', MqttQos.atLeastOnce);
+    print('connected');
   }
 
   void onDisconnected() {
     _connected = false;
+    print('disconnect');
   }
 
   void onSubscribed(String topic) {}
