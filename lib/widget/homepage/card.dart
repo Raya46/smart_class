@@ -268,7 +268,7 @@ class _cardDeviceBoardState extends State<cardDeviceBoard> {
                       const SizedBox(
                         height: 10,
                       ),
-                      Text('${widget.deviceType}',
+                      Text(widget.deviceType,
                           overflow: TextOverflow.ellipsis,
                           style: widget.varType
                               ? bold16Highlight()
@@ -327,6 +327,7 @@ class allCard extends StatefulWidget {
 
 class _allCardState extends State<allCard> {
   late List feature = [];
+  late List totalDevice = [];
   bool isLoading = false;
   List<Room> rooms = [];
   Room? _selectedItem;
@@ -487,6 +488,20 @@ class _allCardState extends State<allCard> {
     }
   }
 
+  Future<void> fetchTotalDevices(String uuid)async{
+    try {
+      final response = await http.get(
+        Uri.parse('http://smartlearning.solusi-rnd.tech/api/device/$uuid/power'),
+      );
+      setState(() {
+        totalDevice = jsonDecode(response.body);
+        print('ini ${totalDevice}');
+      });
+    } catch (e) {
+      print("Exception: $e");
+    }
+  }
+
   Future<void> _fetchDataClass() async {
     try {
       final response = await http.get(
@@ -494,6 +509,7 @@ class _allCardState extends State<allCard> {
       );
       setState(() {
         _classData = jsonDecode(response.body);
+        print(_classData);
       });
     } catch (e) {
       print("Exception: $e");
@@ -502,7 +518,7 @@ class _allCardState extends State<allCard> {
   Future<void> fetchDetail(String uuid) async {
     try {
       final response = await http.get(
-        Uri.parse('http://smartlearning.solusi-rnd.tech/api/device/$uuid/power'),
+        Uri.parse('http://smartlearning.solusi-rnd.tech/api/features'),
       );
       setState(() {
         detailDevices = jsonDecode(response.body);
@@ -546,7 +562,7 @@ class _allCardState extends State<allCard> {
                       setState(() {
                         selectClass = newValue;
                       });
-                      fetchDetail('$selectClass');
+                      fetchTotalDevices('$selectClass');
                       print(selectClass);
                     },
                   ),
@@ -556,7 +572,7 @@ class _allCardState extends State<allCard> {
               height: 15,
             ),
             Wrap(spacing: 10.0, runSpacing: 10.0, children: [
-              for (var data in detailDevices)
+              for (var data in feature)
                 InkWell(
                   onTap: () {
                     setState(() {
@@ -573,15 +589,15 @@ class _allCardState extends State<allCard> {
                     widget.mqttServices.sendMessage('Cikunir/lt2/stts2/sharp', 'Started');
                   },
                   child: cardDeviceBoard(
-                    deviceType: "${data['name_device']}",
-                    deviceValue: _selectedItem?.name == 'TEDK'
-                        ? "${detailDevices.length}"
-                        : _selectedItem?.name == 'TAV1'
-                            ? "${detailDevices.length}"
-                            : _selectedItem?.name == 'TAV2'
-                                ? "${detailDevices.length}"
-                                : _selectedItem?.name == 'TFLM'
-                                    ? "${detailDevices.length}"
+                    deviceType: "${data['name_feature']}",
+                    deviceValue: _selectedItem?.name == 'XIII TEDK'
+                        ? "${totalDevice.length}"
+                        : _selectedItem?.name == 'XIII TAV1'
+                            ? "${totalDevice.length}"
+                            : _selectedItem?.name == 'XIII TAV2'
+                                ? "${totalDevice.length}"
+                                : _selectedItem?.name == 'XIII TFLM'
+                                    ? "${totalDevice.length}"
                                     : '',
                     width: widget.width,
                     varType: data['name_feature'] == 'LAMP'
@@ -593,13 +609,13 @@ class _allCardState extends State<allCard> {
                                 : data['name_feature'] == 'KWH MONITORING'
                                     ? curtain
                                     : switchBoard,
-                    iconData: data['name_feature'] == 'LAMP'
+                    iconData: data['name_feature'].contains('LAMP')
                         ? Ionicons.bulb
-                        : data['name_feature'] == 'AC'
+                        : data['name_feature'].contains('AC')
                             ? Ionicons.snow
-                            : data['name_feature'] == 'SENSOR SUHU'
+                            : data['name_feature'].contains('TEMPERATURE SENSOR')
                                 ? Ionicons.thermometer
-                                : data['name_feature'] == 'KWH MONITORING'
+                                : data['name_feature'].contains('KWH MONITORING')
                                     ? Ionicons.logo_electron
                                     : Icons.control_camera_sharp,
                   ),
